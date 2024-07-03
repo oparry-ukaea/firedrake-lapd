@@ -32,6 +32,7 @@ timeres = 200
 # model
 nstar = Constant(1.0)
 Temp = 1.0
+visc_coeff = 0.1
 width_T = 0.025  # transverse width for Gaussian source
 
 output_base = "LAPD-like_CG_v2"
@@ -80,9 +81,9 @@ F = ((Dt(n)*v1)*dx + (n*Dt(u)*v2 + Dt(w)*v3)*dx) \
    + (v1*div(n*as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))-v1*nstarFunc)*dx \
    + (v3*div(w*as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))+v3*grad(n*u)[0])*dx \
    + (nstarFunc*u*v2+v2*n*inner(grad(u),as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))+Temp*grad(n)[0]*v2)*dx \
-   + 0.3*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n)-as_vector([0,0,nstarFunc])))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v1)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
-   + 0.3*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(w)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v3)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
-   + 0.3*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n*u)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v2)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx
+   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n)-as_vector([0,0,nstarFunc])))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v1)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
+   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(w)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v3)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
+   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n*u)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v2)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx
 # fmt: on
 # params taken from Cahn-Hilliard example cited above
 params = {
