@@ -20,8 +20,8 @@ V = V1*V2*V3
 V4 = FunctionSpace(mesh, "CG", 1) # phi
 
 # time parameters (4.0 / 100 is the standard for longitudinal-only)
-T = 8.0
-timeres = 400
+T = 4.0
+timeres = 200
 t = Constant(0.0)
 dt = Constant(T/timeres)
 
