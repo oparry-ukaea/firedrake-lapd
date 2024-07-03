@@ -2,7 +2,9 @@
 # Attempt at time-dependent solver of LAPD-like equations, with upwind flux
 # based upon SOL_3D_DG_upwind_tdep_irksome_dev.py (longitudinal dynamics)
 # and Nektar-Driftwave_port_irksome_STFC_v2_working_submit.py (transverse dynamics)
-# this version fixes wrong equation for longitudinal velocity cpt
+# This version includes
+# - fix for wrong longitudinal velocity equation
+# - properly transverse Laplacian
 
 # fmt: off
 from firedrake import as_vector, BoxMesh, Constant, DirichletBC, div, dot, dx,\
@@ -101,9 +103,10 @@ bc_outflow_2 = DirichletBC(V.sub(1), 1, 2)
 stepper = TimeStepper(F, butcher_tableau, t, dt, nuw, solver_parameters=params, bcs=[bc_outflow_1, bc_outflow_2])  # fmt: skip
 
 # elliptic solve for potential
-Lphi = inner(grad(phi), grad(v4)) * dx
+Lphi = (
+    grad(phi)[1] * grad(v4)[1] + grad(phi)[2] * grad(v4)[2]
+) * dx  # transverse Laplacian only
 Rphi = -w * v4 * dx
-# phi_s = Function(V4)
 bc1 = DirichletBC(V4, 0, "on_boundary")
 
 # this is intended to be direct solver - but now changed to GMRES
