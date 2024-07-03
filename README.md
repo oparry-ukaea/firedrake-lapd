@@ -54,8 +54,8 @@ Script: [(LAPD-like_simplified_CG.py)](./scripts/LAPD-like_simplified_CG.py)
 Implements the equations above, plus an attempt at streamline-upwind correction to add artificial viscosity.
 
 <p float="left">
-  <img src="docs/media/CGreduced_anim_density_64by64.gif" width="500">
-  <img src="docs/media/CGreduced_anim_density_midslice_64by64.gif" width="500">
+  <img src="docs/media/CGreduced_anim_density_64by64.gif" width="400">
+  <img src="docs/media/CGreduced_anim_density_midslice_64by64.gif" width="400">
 </p>
 
 ### DG version
