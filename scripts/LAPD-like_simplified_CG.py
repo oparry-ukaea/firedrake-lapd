@@ -5,6 +5,7 @@
 # This version includes
 # - fix for wrong longitudinal velocity equation
 # - properly transverse Laplacian
+# - smaller Gaussian width for density source
 
 # fmt: off
 from firedrake import as_vector, BoxMesh, Constant, DirichletBC, div, dot, dx,\
@@ -28,6 +29,11 @@ use_hex_mesh = True
 T = 4.0
 timeres = 200
 
+# model
+nstar = Constant(1.0)
+Temp = 1.0
+width_T = 0.025  # transverse width for Gaussian source
+
 output_base = "LAPD-like_CG_v2"
 # ==============================================================================
 
@@ -46,11 +52,6 @@ dt = Constant(T / timeres)
 # parameters for irksome
 butcher_tableau = GaussLegendre(1)
 # butcher_tableau = GaussLegendre(2)  # bit slow on my laptop, makes it take 8 hrs on 8 cores
-
-# model parameters
-nstar = Constant(1.0)
-Temp = 1.0
-width_T = 0.05  # transverse width for Gaussian source
 
 x = SpatialCoordinate(mesh)
 nuw = Function(V)
