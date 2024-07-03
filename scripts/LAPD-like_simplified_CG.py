@@ -20,7 +20,7 @@ import time
 # ================================ User options ================================
 # mesh
 nx = 16
-ny_nz = 64
+ny_nz = 32
 Lx = 2.0
 Ly_Lz = 0.2
 use_hex_mesh = True
