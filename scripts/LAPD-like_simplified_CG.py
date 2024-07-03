@@ -4,7 +4,7 @@
 # and Nektar-Driftwave_port_irksome_STFC_v2_working_submit.py (transverse dynamics)
 # this version fixes wrong equation for longitudial velocity cpt
 
-from firedrake import *
+from firedrake import as_vector, BoxMesh, Constant, DirichletBC, div, dot, dx, exp, Function, FunctionSpace, grad, inner, PETSc, SpatialCoordinate, solve, split, sqrt, TestFunction, TestFunctions, TrialFunction, VectorSpaceBasis, VTKFile
 import math
 from irksome import Dt, GaussLegendre, MeshConstant, TimeStepper
 import time
@@ -50,9 +50,9 @@ phi_s = Function(V4)
 nstarFunc = Function(V1)
 nstarFunc.interpolate(nstar*0.0 + 100.0*exp(-((x[1]-0.1)**2+(x[2]-0.1)**2)/(2*width_T**2)))
 
-# TRIALCODE check init data
-File("LAPD-like_CG_v2_init.pvd").write(nuw.sub(0), nuw.sub(1), nuw.sub(2))
-#quit()
+outpath_ICs="LAPD-like_CG_v2_init.pvd"
+PETSc.Sys.Print("Writing ICs to ",outpath_ICs)
+VTKFile(outpath_ICs).write(nuw.sub(0), nuw.sub(1), nuw.sub(2))
 
 # dev version with longitudinal and transverse dynamics
 # last 3 terms are the artificial viscosity
@@ -101,10 +101,19 @@ outfile = VTKFile("LAPD-like_CG_v2.pvd")
 
 start = time.time()
 
+# Print config options
+PETSc.Sys.Print(f"Using:")
+PETSc.Sys.Print(f" dt      = {float(dt):.5g}")
+PETSc.Sys.Print(f" T_end   = {float(T):.5g}")
+PETSc.Sys.Print(f" meshres = {meshres:d}")
+
+PETSc.Sys.Print("\nTimestep loop:")
+step=0
 while float(t) < float(T):
+    it_start = time.time()
     if (float(t) + float(dt)) >= T:
         dt.assign(T - float(t))
-
+        PETSc.Sys.Print(f"  Last dt = {dt}")
     solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=bc1)
 
     nuw.sub(0).rename("density")
@@ -119,11 +128,13 @@ while float(t) < float(T):
 
     stepper.advance()
     t.assign(float(t) + float(dt))
-    print(float(t), float(dt))
-
+    it_end = time.time()
+    it_wall_time = it_end-it_start
+    PETSc.Sys.Print(f"  Iter {step+1:d}/{timeres:d} took {it_wall_time:.5g} s")
+    PETSc.Sys.Print(f"t = {float(t):.5g}")
+    step += 1
 end = time.time()
 wall_time = end-start
 
-print("done.")
-print("\n")
-print("wall time:"+str(wall_time)+"\n")
+PETSc.Sys.Print("\nDone.")
+PETSc.Sys.Print(f"Total wall time: {wall_time:.5g}")
