@@ -9,7 +9,7 @@ import math
 from irksome import Dt, GaussLegendre, MeshConstant, TimeStepper
 import time
 
-meshres = 32
+meshres = 64
 h=1.0/meshres
 mesh = BoxMesh(16, meshres, meshres, 2.0, 0.2, 0.2, hexahedral=True)
 

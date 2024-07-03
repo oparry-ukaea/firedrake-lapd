@@ -1,9 +1,9 @@
 # firedrake-lapd
-Resources and scripts written to model the LArge Plasma Device with Firedrake
 
-Scripts list: LAPD-like_simplified_CG.py (is CG version of the below using an attempt at streamline-upwind correction to add artificial viscosity).
 
-# Maths describing first attempt at a reduced system
+## Simplified system
+
+### Equations
 
 $$
 \dot{n} + \nabla \cdot \left ( n \left ( v_{\parallel} + v_D \right )\right ) = n_0
@@ -27,7 +27,7 @@ $$
 
 is the gradient RHS for omega needed?
 
-# Reduction to form used in Firedrake
+### Reduction to form used in Firedrake
 
 The first two eqs are
 
@@ -47,4 +47,19 @@ $$
 
 (If unsure about the vector calculus see the [vector calculus identities Wiki page](https://en.wikipedia.org/wiki/Vector_calculus_identities), that's what I do.)
 
-DG version - TBC!  Need to make the advection work in the $\dot{v_{\parallel}}$ equation.
+### CG version
+
+Script: [(LAPD-like_simplified_CG.py)](./scripts/LAPD-like_simplified_CG.py)
+
+Implements the equations above, plus an attempt at streamline-upwind correction to add artificial viscosity.
+
+<p float="left">
+  <img src="docs/media/CGreduced_anim_density_64by64.gif" width="400">
+  <img src="docs/media/CGreduced_anim_density_midslice_64by64.gif" width="400">
+</p>
+
+### DG version
+
+Work in progress
+
+<!-- Script: [(LAPD-like_simplified_DG.py)](./scripts/LAPD-like_simplified_DG.py) -->
