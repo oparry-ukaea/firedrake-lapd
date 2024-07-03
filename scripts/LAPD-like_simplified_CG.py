@@ -25,9 +25,10 @@ Lx = 2.0
 Ly_Lz = 0.2
 use_hex_mesh = True
 
-# time (4.0 / 100 is the standard for longitudinal-only)
+# time
+# (4.0 / 100 is the standard for longitudinal-only). Smaller dt required with transverse Laplacian.
 T = 4.0
-timeres = 200
+timeres = 800
 
 # model
 nstar = Constant(1.0)
