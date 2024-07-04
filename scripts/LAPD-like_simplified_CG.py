@@ -13,7 +13,6 @@ from firedrake import as_vector, BoxMesh, Constant, DirichletBC, div, dot, dx,\
      solve, split, sqrt, TestFunction, TestFunctions, TrialFunction,\
      VectorSpaceBasis, VTKFile
 # fmt: on
-import math
 from irksome import Dt, GaussLegendre, TimeStepper
 import time
 
