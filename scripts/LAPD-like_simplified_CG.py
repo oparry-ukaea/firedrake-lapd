@@ -16,6 +16,31 @@ from firedrake import as_vector, BoxMesh, Constant, DirichletBC, div, dot, dx,\
 from irksome import Dt, GaussLegendre, TimeStepper
 import time
 
+
+# ============================== Helper functions ==============================
+def utot(upar, phi):
+    """
+    upar + u_ExB
+      where u_ExB = (0,-∂ϕ/∂z, ∂ϕ/∂y) for B aligned with x axis
+    """
+    return as_vector([upar, grad(phi)[2], -grad(phi)[1]])
+
+
+# fmt: off
+def art_visc_term(
+    visc_coeff,
+    h,
+    tri,
+    test,
+    u,
+    phi_s,
+    offset=0
+):
+    return visc_coeff \
+        * (0.5 * h * (dot(utot(u, phi_s), grad(tri) - offset)) * dot(utot(u, phi_s), grad(test))) \
+        * (1 / sqrt((grad(phi_s)[1]) ** 2 + (grad(phi_s)[2]) ** 2 + u**2 + 0.0001)) \
+        * dx
+# fmt: on
 # ================================ User options ================================
 # mesh
 nx = 16
@@ -74,17 +99,25 @@ outpath_ICs = f"{output_base}_init.pvd"
 PETSc.Sys.Print("Writing ICs to ", outpath_ICs)
 VTKFile(outpath_ICs).write(nuw.sub(0), nuw.sub(1), nuw.sub(2))
 
-# dev version with longitudinal and transverse dynamics
-# last 3 terms are the artificial viscosity
+# Weak forms of various terms
+n_adv = v1 * div(n * utot(u, phi_s))
+n_src = v1 * nstarFunc
+nu_term1 = nstarFunc * u * v2
+nu_term2 = v2 * n * inner(grad(u), utot(u, phi_s))
+nu_src = -Temp * grad(n)[0] * v2
+w_adv = v3 * div(w * utot(u, phi_s))
+w_src = -v3 * grad(n * u)[0]
+# Define the full variational problem
 # fmt: off
-F = ((Dt(n)*v1)*dx + (n*Dt(u)*v2 + Dt(w)*v3)*dx) \
-   + (v1*div(n*as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))-v1*nstarFunc)*dx \
-   + (v3*div(w*as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))+v3*grad(n*u)[0])*dx \
-   + (nstarFunc*u*v2+v2*n*inner(grad(u),as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))+Temp*grad(n)[0]*v2)*dx \
-   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n)-as_vector([0,0,nstarFunc])))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v1)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
-   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(w)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v3)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
-   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n*u)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v2)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx
+F = ((Dt(n)*v1 + n*Dt(u)*v2 + Dt(w)*v3)*dx) \
+   + (n_adv - n_src) * dx \
+   + (nu_term1 + nu_term2 - nu_src) * dx \
+   + (w_adv - w_src) * dx \
+   + art_visc_term(visc_coeff, h, n, v1, offset=as_vector([0, 0, nstarFunc])) \
+   + art_visc_term(visc_coeff, h, n*u, v2) \
+   + art_visc_term(visc_coeff, h, w, v3)
 # fmt: on
+
 # params taken from Cahn-Hilliard example cited above
 params = {
     "snes_monitor": None,
@@ -104,7 +137,7 @@ bc_outflow_2 = DirichletBC(V.sub(1), 1, 2)
 
 stepper = TimeStepper(F, butcher_tableau, t, dt, nuw, solver_parameters=params, bcs=[bc_outflow_1, bc_outflow_2])  # fmt: skip
 
-# elliptic solve for potential
+# ============= Elliptic solve for potential ==============
 Lphi = (
     grad(phi)[1] * grad(v4)[1] + grad(phi)[2] * grad(v4)[2]
 ) * dx  # transverse Laplacian only
@@ -122,8 +155,7 @@ linparams = {
 }
 
 nullspace = VectorSpaceBasis(constant=True)
-
-# end of stuff for elliptic solve
+# ============= End of elliptic solve set up ==============
 
 outfile = VTKFile(f"{output_base}.pvd")
 
