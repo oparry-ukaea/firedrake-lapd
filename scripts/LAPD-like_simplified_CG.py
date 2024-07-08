@@ -55,7 +55,8 @@ T = 4.0
 timeres = 800
 
 # model
-nstar = Constant(1.0)
+nstar = Constant(1.0)  # not actually used
+nstar_boost = 100.0  # temporary factor by which density source is boosted
 Temp = 1.0
 visc_coeff = 0.1
 width_T = 0.025  # transverse width for Gaussian source
@@ -93,7 +94,7 @@ phi_s = Function(V4)
 
 # source function, amplitude was simple cranked up until nontrivial behaviour was seen
 nstarFunc = Function(V1)
-nstarFunc.interpolate(nstar*0.0 + 100.0*exp(-((x[1]-0.1)**2+(x[2]-Ly_Lz/2)**2)/(2*width_T**2)))  # fmt: skip
+nstarFunc.interpolate(nstar*0.0 + nstar_boost*exp(-((x[1]-0.1)**2+(x[2]-Ly_Lz/2)**2)/(2*width_T**2)))  # fmt: skip
 
 outpath_ICs = f"{output_base}_init.pvd"
 PETSc.Sys.Print("Writing ICs to ", outpath_ICs)
