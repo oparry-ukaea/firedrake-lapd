@@ -143,7 +143,8 @@ Lphi = (
     grad(phi)[1] * grad(v4)[1] + grad(phi)[2] * grad(v4)[2]
 ) * dx  # transverse Laplacian only
 Rphi = -w * v4 * dx
-bc1 = DirichletBC(V4, 0, "on_boundary")
+# D0 on all boundaries
+phi_BCs = DirichletBC(V4, 0, "on_boundary")
 
 # this is intended to be direct solver - but now changed to GMRES
 linparams = {
@@ -185,7 +186,7 @@ while float(t) < float(T):
     if (float(t) + float(dt)) >= T:
         dt.assign(T - float(t))
         PETSc.Sys.Print(f"  Last dt = {dt}")
-    solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=bc1)  # fmt: skip
+    solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=phi_BCs)  # fmt: skip
 
     nuw.sub(0).rename("density")
     nuw.sub(1).rename("velocity")
