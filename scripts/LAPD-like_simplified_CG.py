@@ -33,12 +33,12 @@ def art_visc_term(
     tri,
     test,
     u,
-    phi_s,
-    offset=0
+    phi,
+    offset=as_vector([0, 0, 0])
 ):
     return visc_coeff \
-        * (0.5 * h * (dot(utot(u, phi_s), grad(tri) - offset)) * dot(utot(u, phi_s), grad(test))) \
-        * (1 / sqrt((grad(phi_s)[1]) ** 2 + (grad(phi_s)[2]) ** 2 + u**2 + 0.0001)) \
+        * (0.5 * h * (dot(utot(u, phi), grad(tri) - offset)) * dot(utot(u, phi), grad(test))) \
+        * (1 / sqrt((grad(phi)[1])**2 + (grad(phi)[2])**2 + u**2 + 0.0001)) \
         * dx
 # fmt: on
 # ================================ User options ================================
@@ -48,7 +48,6 @@ ny_nz = 32
 Lx = 2.0
 Ly_Lz = 0.2
 use_hex_mesh = True
-
 # time
 # (4.0 / 100 is the standard for longitudinal-only). Smaller dt required with transverse Laplacian.
 T = 4.0
@@ -114,9 +113,9 @@ F = ((Dt(n)*v1 + n*Dt(u)*v2 + Dt(w)*v3)*dx) \
    + (n_adv - n_src) * dx \
    + (nu_term1 + nu_term2 - nu_src) * dx \
    + (w_adv - w_src) * dx \
-   + art_visc_term(visc_coeff, h, n, v1, offset=as_vector([0, 0, nstarFunc])) \
-   + art_visc_term(visc_coeff, h, n*u, v2) \
-   + art_visc_term(visc_coeff, h, w, v3)
+   + art_visc_term(visc_coeff, h, n, v1, u, phi_s, offset=as_vector([0, 0, nstarFunc])) \
+   + art_visc_term(visc_coeff, h, n*u, v2, u, phi_s) \
+   + art_visc_term(visc_coeff, h, w, v3, u, phi_s)
 # fmt: on
 
 # params taken from Cahn-Hilliard example cited above
