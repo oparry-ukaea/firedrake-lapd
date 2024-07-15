@@ -14,6 +14,7 @@ from firedrake import as_vector, BoxMesh, Constant, DirichletBC, div, dot, dx,\
      VectorSpaceBasis, VTKFile
 # fmt: on
 from irksome import Dt, GaussLegendre, TimeStepper
+from pyop2.mpi import COMM_WORLD
 import time
 
 
@@ -155,7 +156,7 @@ linparams = {
     "pc_factor_mat_solver_type": "mumps",
 }
 
-nullspace = VectorSpaceBasis(constant=True)
+nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
 # ============= End of elliptic solve set up ==============
 
 outfile = VTKFile(f"{output_base}.pvd")
