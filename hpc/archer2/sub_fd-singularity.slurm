@@ -4,7 +4,7 @@
 #SBATCH --job-name=fd-singularity
 #SBATCH --time=04:00:00
 #SBATCH --nodes=2
-#SBATCH --ntasks-per-node=64
+#SBATCH --ntasks-per-node=32
 #SBATCH --exclusive
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=standard
