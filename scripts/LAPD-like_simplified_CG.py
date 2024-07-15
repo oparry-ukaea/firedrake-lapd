@@ -96,10 +96,6 @@ phi_s = Function(V4)
 nstarFunc = Function(V1)
 nstarFunc.interpolate(nstar*0.0 + nstar_boost*exp(-((x[1]-0.1)**2+(x[2]-Ly_Lz/2)**2)/(2*width_T**2)))  # fmt: skip
 
-outpath_ICs = f"{output_base}_init.pvd"
-PETSc.Sys.Print("Writing ICs to ", outpath_ICs)
-VTKFile(outpath_ICs).write(nuw.sub(0), nuw.sub(1), nuw.sub(2))
-
 # Weak forms of various terms
 n_adv = v1 * div(n * utot(u, phi_s))
 n_src = v1 * nstarFunc
