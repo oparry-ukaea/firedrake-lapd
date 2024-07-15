@@ -5,6 +5,7 @@
 #SBATCH --time=04:00:00
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=64
+#SBATCH --exclusive
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=standard
 #SBATCH --qos=standard
