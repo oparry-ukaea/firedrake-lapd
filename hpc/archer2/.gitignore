@@ -1,2 +1,2 @@
-singularity/firedrake.sif
+singularity/*.sif
 singularity/firedrake-singularity
