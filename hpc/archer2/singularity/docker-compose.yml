@@ -4,6 +4,7 @@ services:
     build:
       args:
         BUILD_ARCH: "x86-64"
+        BUILD_MAKE_NP: "8"
         MPICH_DOWNLOAD_VERSION: "3.4.3"
         MPICH_DOWNLOAD_DEVICE: "ch3:nemesis"
         EXTRA_PACKAGES: "hwloc,metis,pastix,suitesparse,superlu_dist"
