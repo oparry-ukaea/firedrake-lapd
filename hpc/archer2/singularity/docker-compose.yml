@@ -1,3 +1,7 @@
+# Abuse docker-compose as a means to store docker build args all in one place
+# ToDo:
+#  'depends_on' is intended for container spin-up ordering rather than build dependencies, not sure it's working as intended here
+#   Might be better to use a multi-stage build or something like this: https://github.com/dnephin/dobi/blob/main/README.rst
 services:
   petsc_env:
     image: petsc-env
