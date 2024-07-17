@@ -11,7 +11,7 @@ services:
         BUILD_MAKE_NP: "8"
         MPICH_DOWNLOAD_VERSION: "3.4.3"
         MPICH_DOWNLOAD_DEVICE: "ch3:nemesis"
-        EXTRA_PACKAGES: "hwloc,metis,pastix,suitesparse,superlu_dist"
+        EXTRA_PACKAGES: "metis pastix suitesparse superlu_dist"
       context: petsc
   firedrake:
     image: firedrake
