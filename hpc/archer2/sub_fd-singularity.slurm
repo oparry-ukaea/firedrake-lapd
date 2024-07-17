@@ -4,7 +4,8 @@
 #SBATCH --job-name=fd-singularity
 #SBATCH --time=04:00:00
 #SBATCH --nodes=2
-#SBATCH --ntasks-per-node=64
+#SBATCH --ntasks-per-node=32
+#SBATCH --exclusive
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=standard
 #SBATCH --qos=standard
@@ -60,12 +61,13 @@ for var in "script" "sif_dir" "sif_fname" "working_dir"; do
           exit 1
      fi
 done
-echo "Running ${script} in ${working_dir} with singularity image ${sif_dir}/${sif_fname}"
-
 #==============================================================================
 # Fudge to force initalisation in serial and bypass lock file issues
+echo "Initialising container env"
 singularity exec --bind ${working_dir}:/home/firedrake/work --home ${working_dir} "${sif_dir}/${sif_fname}" /home/firedrake/firedrake/bin/python -c "import firedrake"
 
+echo
+echo "Running ${script} in ${working_dir} with singularity image ${sif_dir}/${sif_fname}"
 # Launch the parallel job
 srun --hint=nomultithread --distribution=block:block --chdir=${working_dir}\
      singularity exec \
