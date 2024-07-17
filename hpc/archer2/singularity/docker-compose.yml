@@ -4,6 +4,7 @@
 services:
   petsc_env:
     image: petsc-env
+    container_name: petsc-env
     build:
       args:
         BUILD_ARCH: "x86-64"

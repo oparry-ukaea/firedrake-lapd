@@ -29,9 +29,12 @@ build_cmd="docker compose build $*"
 eval "$build_cmd"
 check_ret "docker compose build ($build_cmd)"
 
-test_cmd="docker compose up --exit-code-from firedrake"
+test_cmd="docker compose up --abort-on-container-failure firedrake"
 eval "$test_cmd"
 check_ret "firedrake tests ($test_cmd)"
+
+# Clean up containers (but don't bother checking return code)
+docker container rm petsc-env firedrake &> /dev/null
 
 # Convert to sandbox singularity
 singularity build --force \
