@@ -1,4 +1,4 @@
-# DockerFile for an environment into which firedrake can be installed.                                                                                                                        
+# DockerFile for an environment into which firedrake can be installed.
 
 # setup the base OS
 FROM ubuntu:22.04
@@ -100,7 +100,7 @@ RUN bash -c 'cd petsc; \
     --download-mpich=$MPICH_DOWNLOAD_URL \
     --download-mpich-device=$MPICH_DOWNLOAD_DEVICE \
     $DOWNLOAD_PACKAGES \
-    PETSC_ARCH=packages; \                                                                                                                                                                
+    PETSC_ARCH=packages; \
     mv packages/include/petscconf.h packages/include/old_petscconf.nope;'
 # Don't run make here, we only want MPICH and HWLOC
 # It is also necessary to move `petscconf.h` so packages isn't treated like a working PETSc

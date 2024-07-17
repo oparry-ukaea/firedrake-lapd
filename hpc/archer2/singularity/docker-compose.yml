@@ -1,12 +1,17 @@
+# ToDo:
+#  'depends_on' is intended for container spin-up ordering rather than build dependencies, not sure it's working as intended here
+#   Might be better to use a multi-stage build or something like this: https://github.com/dnephin/dobi/blob/main/README.rst
 services:
   petsc_env:
     image: petsc-env
+    container_name: petsc-env
     build:
       args:
         BUILD_ARCH: "x86-64"
+        BUILD_MAKE_NP: "8"
         MPICH_DOWNLOAD_VERSION: "3.4.3"
         MPICH_DOWNLOAD_DEVICE: "ch3:nemesis"
-        EXTRA_PACKAGES: "hwloc,metis,pastix,suitesparse,superlu_dist"
+        EXTRA_PACKAGES: "metis pastix suitesparse superlu_dist"
       context: petsc
   firedrake:
     image: firedrake
@@ -16,3 +21,4 @@ services:
         FIREDRAKE_BRANCH: "master"
       context: firedrake
     depends_on: ["petsc_env"]
+    entrypoint: "./run_tests.sh"
