@@ -22,7 +22,9 @@ do
     fi
 done
 
-echo "N.B. Pass --no-cache to this script to disable layer caching and force all images to rebuild from scratch"
+if ! [[ "$*" == *"--no-cache"* ]]; then
+    echo "N.B. Pass --no-cache to this script to disable layer caching and force all images to rebuild from scratch"
+fi
 
 # Build the docker images
 build_cmd="docker compose build $*"
