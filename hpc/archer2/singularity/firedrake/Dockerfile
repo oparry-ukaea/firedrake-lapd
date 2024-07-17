@@ -32,3 +32,6 @@ RUN bash -c 'python3 firedrake-install \
 
 RUN bash -c '. /home/firedrake/firedrake/bin/activate; \
     firedrake-clean'
+
+# Add entrypoint script to run the tests
+COPY run_tests.sh .

@@ -21,5 +21,4 @@ services:
         FIREDRAKE_BRANCH: "master"
       context: firedrake
     depends_on: ["petsc_env"]
-    working_dir: /home/firedrake/firedrake/src/firedrake
-    entrypoint: '/home/firedrake/firedrake/bin/python -m pytest -v tests/regression/ -k "poisson_strong or stokes_mini or dg_advection"'
+    entrypoint: "./run_tests.sh"
