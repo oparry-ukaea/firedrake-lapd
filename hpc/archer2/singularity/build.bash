@@ -25,9 +25,13 @@ done
 echo "N.B. Pass --no-cache to this script to disable layer caching and force all images to rebuild from scratch"
 
 # Build the docker images
-compose_cmd="docker compose build $*"
-eval "$compose_cmd"
-check_ret "docker compose build"
+build_cmd="docker compose build $*"
+eval "$build_cmd"
+check_ret "docker compose build ($build_cmd)"
+
+test_cmd="docker compose up --exit-code-from firedrake"
+eval "$test_cmd"
+check_ret "firedrake tests ($test_cmd)"
 
 # Convert to sandbox singularity
 singularity build --force \

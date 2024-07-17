@@ -31,9 +31,4 @@ RUN bash -c 'python3 firedrake-install \
     --package-branch firedrake ${FIREDRAKE_BRANCH}'
 
 RUN bash -c '. /home/firedrake/firedrake/bin/activate; \
-    cd /home/firedrake/firedrake/src/firedrake/; \
-    python -m pytest -v tests/regression/ \
-    -k "poisson_strong or stokes_mini or dg_advection"; sleep 5'
-
-RUN bash -c '. /home/firedrake/firedrake/bin/activate; \
     firedrake-clean'
