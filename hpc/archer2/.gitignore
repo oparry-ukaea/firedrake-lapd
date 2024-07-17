@@ -1,2 +1,5 @@
+# Images
 singularity/*.sif
+# Temporary build dirs
+singularity/build-temp*
 singularity/firedrake-singularity
