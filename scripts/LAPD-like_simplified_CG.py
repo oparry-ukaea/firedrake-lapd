@@ -10,27 +10,68 @@ from firedrake import as_vector, BoxMesh, Constant, DirichletBC, div, dot, dx,\
      solve, split, sqrt, TestFunction, TestFunctions, TrialFunction,\
      VectorSpaceBasis, VTKFile
 # fmt: on
-import math
 from irksome import Dt, GaussLegendre, TimeStepper
+import math
 import time
+
+from meshes import CylinderMesh
 
 # ================================ User options ================================
 # mesh
-nx = 16
-ny_nz = 64
-Lx = 2.0
-Ly_Lz = 0.2
-use_hex_mesh = True
+opts = dict(nx=16, Lx=2.0)
+cuboid_mesh_opts = dict(ny_nz=64, Ly_Lz=0.2, use_hex_mesh=True)
+cylinder_mesh_opts = dict(
+    radius=0.1, ref_level=3
+)  # number of cells in each transverse layer is 2^(2*ref_level+3)
+mesh_type = "cylinder"  # "cuboid"
 
-# time (4.0 / 100 is the standard for longitudinal-only)
+# time
+# (4.0 / 100 is the standard for longitudinal-only). Smaller dt required with transverse Laplacian.
 T = 4.0
 timeres = 200
+
+# model
+nstar = Constant(1.0)
+Temp = 1.0
+visc_coeff = 0.3
+width_T = 0.05  # transverse width for Gaussian source
 
 output_base = "LAPD-like_CG_v2"
 # ==============================================================================
 
-h = 1.0 / ny_nz
-mesh = BoxMesh(nx, ny_nz, ny_nz, Lx, Ly_Lz, Ly_Lz, hexahedral=use_hex_mesh)
+opts.update(dict(cuboid=cuboid_mesh_opts, cylinder=cylinder_mesh_opts)[mesh_type])
+if mesh_type == "cuboid":
+    mesh = BoxMesh(
+        opts["nx"],
+        opts["ny_nz"],
+        opts["ny_nz"],
+        opts["Lx"],
+        opts["Ly_Lz"],
+        opts["Ly_Lz"],
+        hexahedral=opts["use_hex_mesh"],
+    )
+    bdy_lbl_lowx = 1
+    bdy_lbl_highx = 2
+    bdy_lbl_all = "on_boundary"
+    centre = [opts["Lx"] / 2, opts["Ly_Lz"] / 2, opts["Ly_Lz"] / 2]
+    h = 1.0 / opts["ny_nz"]
+elif mesh_type == "cylinder":
+    opts["ncells_tranverse"] = 2 ** (2 * opts["ref_level"] + 3)
+    bdy_lbl_lowx = "bottom"
+    bdy_lbl_highx = "top"
+    bdy_lbl_all = ("on_boundary", "top", "bottom")
+    centre = [opts["Lx"] / 2, 0.0, 0.0]
+    mesh = CylinderMesh(
+        opts["radius"],
+        opts["nx"],
+        opts["Lx"],
+        longitudinal_axis=0,
+        refinement_level=opts["ref_level"],
+    )
+    # guess at something roughly equivalent to 1.0 / mesh_opts["ny_nz"] for cuboid mesh
+    h = math.sqrt(1.0 / opts["ncells_tranverse"])
+else:
+    raise ValueError(f"mesh_type [{mesh_type}] not recognised")
 
 V1 = FunctionSpace(mesh, "CG", 1)  # n
 V2 = FunctionSpace(mesh, "CG", 1)  # u - velocity x-cpt
@@ -44,11 +85,6 @@ dt = Constant(T / timeres)
 # parameters for irksome
 butcher_tableau = GaussLegendre(1)
 # butcher_tableau = GaussLegendre(2)  # bit slow on my laptop, makes it take 8 hrs on 8 cores
-
-# model parameters
-nstar = Constant(1.0)
-Temp = 1.0
-width_T = 0.05  # transverse width for Gaussian source
 
 x = SpatialCoordinate(mesh)
 nuw = Function(V)
@@ -64,7 +100,7 @@ phi_s = Function(V4)
 
 # source function, amplitude was simple cranked up until nontrivial behaviour was seen
 nstarFunc = Function(V1)
-nstarFunc.interpolate(nstar*0.0 + 100.0*exp(-((x[1]-0.1)**2+(x[2]-Ly_Lz/2)**2)/(2*width_T**2)))  # fmt: skip
+nstarFunc.interpolate(nstar*0.0 + 100.0*exp(-((x[1]-centre[1])**2+(x[2]-centre[2])**2)/(2*width_T**2)))  # fmt: skip
 
 outpath_ICs = f"{output_base}_init.pvd"
 PETSc.Sys.Print("Writing ICs to ", outpath_ICs)
@@ -77,9 +113,9 @@ F = ((Dt(n)*v1)*dx + (n*Dt(u)*v2 + Dt(w)*v3)*dx) \
    + (v1*div(n*as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))-v1*nstarFunc)*dx \
    + (v3*div(w*as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))+v3*grad(n*u)[0])*dx \
    + (nstarFunc*u*v2+v2*n*inner(grad(u),as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))+Temp*grad(n)[0]*v2)*dx \
-   + 0.3*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n)-as_vector([0,0,nstarFunc])))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v1)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
-   + 0.3*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(w)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v3)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
-   + 0.3*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n*u)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v2)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx
+   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n)-as_vector([0,0,nstarFunc])))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v1)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
+   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(w)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v3)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
+   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n*u)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v2)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx
 # fmt: on
 # params taken from Cahn-Hilliard example cited above
 params = {
@@ -93,8 +129,8 @@ params = {
 }
 
 # Dirichlet BCs are needed for boundary velocity
-bc_outflow_1 = DirichletBC(V.sub(1), -1, 1)
-bc_outflow_2 = DirichletBC(V.sub(1), 1, 2)
+bc_outflow_1 = DirichletBC(V.sub(1), -1, bdy_lbl_lowx)
+bc_outflow_2 = DirichletBC(V.sub(1), 1, bdy_lbl_highx)
 
 # bc_n = DirichletBC(V.sub(0), 0.0, [3, 4, 5, 6])
 
@@ -103,8 +139,7 @@ stepper = TimeStepper(F, butcher_tableau, t, dt, nuw, solver_parameters=params, 
 # elliptic solve for potential
 Lphi = inner(grad(phi), grad(v4)) * dx
 Rphi = -w * v4 * dx
-# phi_s = Function(V4)
-bc1 = DirichletBC(V4, 0, "on_boundary")
+bc1 = DirichletBC(V4, 0, bdy_lbl_all)
 
 # this is intended to be direct solver - but now changed to GMRES
 linparams = {
@@ -126,14 +161,23 @@ start = time.time()
 
 # Print config options
 PETSc.Sys.Print(f"Using:")
-PETSc.Sys.Print(f" dt      = {float(dt):.5g}")
-PETSc.Sys.Print(f" T_end   = {float(T):.5g}")
-PETSc.Sys.Print(f" transverse:")
-PETSc.Sys.Print(f"   size  = {ny_nz:d}")
-PETSc.Sys.Print(f"   res   = {Ly_Lz:.5g}")
-PETSc.Sys.Print(f" parallel:")
-PETSc.Sys.Print(f"   size  = {nx:d}")
-PETSc.Sys.Print(f"   res   = {Lx:.5g}")
+PETSc.Sys.Print(f"  Time:")
+PETSc.Sys.Print(f"    dt    = {float(dt):.5g}")
+PETSc.Sys.Print(f"    T_end = {float(T):.5g}")
+PETSc.Sys.Print(f"  Mesh:")
+if mesh_type == "cuboid":
+    PETSc.Sys.Print(f"    Hexes? : " + ("Yes" if opts["use_hex_mesh"] else "No"))
+    PETSc.Sys.Print(f"    Transverse size = {opts['Ly_Lz']:.5g}")
+    PETSc.Sys.Print(f"    Transverse res  = {opts['ny_nz']:d}")
+else:
+    PETSc.Sys.Print(f"             Radius = {opts['radius']:.5g}")
+    PETSc.Sys.Print(f"    Transverse res  = {opts['ncells_tranverse']:d}")
+PETSc.Sys.Print(f"    Parallel size   = {opts['Lx']:.5g}")
+PETSc.Sys.Print(f"    Parallel res    = {opts['nx']:d}")
+PETSc.Sys.Print(f"  Model:")
+PETSc.Sys.Print(f"    n_*     = {nstar.values()[0]}")
+PETSc.Sys.Print(f"    width_T = {width_T}")
+PETSc.Sys.Print(f"    T       = {T}")
 
 PETSc.Sys.Print("\nTimestep loop:")
 step = 0
