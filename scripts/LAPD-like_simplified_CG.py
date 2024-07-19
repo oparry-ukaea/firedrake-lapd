@@ -93,7 +93,8 @@ elif mesh_type == "cylinder":
     opts["ncells_tranverse"] = 2 ** (2 * opts["ref_level"] + 3)
     bdy_lbl_lowx = "bottom"
     bdy_lbl_highx = "top"
-    bdy_lbl_all = ("on_boundary", "top", "bottom")
+    bdy_lbl_transverse = "on_boundary"
+    bdy_lbl_all = (bdy_lbl_transverse, bdy_lbl_highx, bdy_lbl_lowx)
     centre = [opts["Lx"] / 2, 0.0, 0.0]
     mesh = CylinderMesh(
         opts["radius"],
@@ -181,7 +182,7 @@ else:
     Lphi = inner(grad(phi), grad(v4)) * dx
 Rphi = -w * v4 * dx
 # D0 on all boundaries
-phi_BCs = DirichletBC(V4, 0, bdy_lbl_all)
+phi_BCs = DirichletBC(V4, 0, bdy_lbl_transverse)
 
 # this is intended to be direct solver - but now changed to GMRES
 linparams = {
