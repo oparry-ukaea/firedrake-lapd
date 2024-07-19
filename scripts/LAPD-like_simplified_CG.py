@@ -60,6 +60,7 @@ mesh_type = "cylinder"  # "cuboid"
 # (4.0 / 100 is the standard for longitudinal-only). Smaller dt required with transverse Laplacian.
 T = 4.0
 timeres = 800
+output_freq = 4
 
 # model
 nstar = Constant(1.0)  # not actually used
@@ -237,8 +238,10 @@ while float(t) < float(T):
         PETSc.Sys.Print(f"  Last dt = {dt}")
     solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=phi_BCs)  # fmt: skip
 
-    p.interpolate(nuw.sub(0) * nuw.sub(1))
-    outfile.write(nuw.sub(0), nuw.sub(1), nuw.sub(2), phi_s, p)
+    # Write fields on output steps
+    if step % output_freq == 0:
+        p.interpolate(nuw.sub(0) * nuw.sub(1))
+        outfile.write(nuw.sub(0), nuw.sub(1), nuw.sub(2), phi_s, p)
 
     stepper.advance()
     t.assign(float(t) + float(dt))
