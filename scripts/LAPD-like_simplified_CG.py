@@ -5,7 +5,6 @@
 # This version includes
 # - fix for wrong longitudinal velocity equation
 # - properly transverse Laplacian
-# - smaller Gaussian width for density source
 # - cylindrical mesh by default
 
 # fmt: off
@@ -68,7 +67,7 @@ nstar_boost = 100.0  # temporary factor by which density source is boosted
 Temp = 1.0
 transverse_laplacian = True
 visc_coeff = 0.1
-width_T = 0.025  # transverse width for Gaussian source
+width_T = 0.05  # transverse width for Gaussian source
 
 output_base = "LAPD-like_CG_v2"
 # ==============================================================================
