@@ -2,7 +2,10 @@
 # Attempt at time-dependent solver of LAPD-like equations, with upwind flux
 # based upon SOL_3D_DG_upwind_tdep_irksome_dev.py (longitudinal dynamics)
 # and Nektar-Driftwave_port_irksome_STFC_v2_working_submit.py (transverse dynamics)
-# this version fixes wrong equation for longitudinal velocity cpt
+# This version includes
+# - fix for wrong longitudinal velocity equation
+# - properly transverse Laplacian
+# - cylindrical mesh by default
 
 # fmt: off
 from firedrake import as_vector, BoxMesh, Constant, DirichletBC, div, dot, dx,\
@@ -10,11 +13,39 @@ from firedrake import as_vector, BoxMesh, Constant, DirichletBC, div, dot, dx,\
      solve, split, sqrt, TestFunction, TestFunctions, TrialFunction,\
      VectorSpaceBasis, VTKFile
 # fmt: on
+
 from irksome import Dt, GaussLegendre, TimeStepper
 import math
+from pyop2.mpi import COMM_WORLD
 import time
 
 from meshes import CylinderMesh
+
+
+# ============================== Helper functions ==============================
+def utot(upar, phi):
+    """
+    upar + u_ExB
+      where u_ExB = (0,-∂ϕ/∂z, ∂ϕ/∂y) for B aligned with x axis
+    """
+    return as_vector([upar, grad(phi)[2], -grad(phi)[1]])
+
+
+# fmt: off
+def art_visc_term(
+    visc_coeff,
+    h,
+    tri,
+    test,
+    u,
+    phi,
+    offset=as_vector([0, 0, 0])
+):
+    return visc_coeff \
+        * (0.5 * h * (dot(utot(u, phi), grad(tri) - offset)) * dot(utot(u, phi), grad(test))) \
+        * (1 / sqrt((grad(phi)[1])**2 + (grad(phi)[2])**2 + u**2 + 0.0001)) \
+        * dx
+# fmt: on
 
 # ================================ User options ================================
 # mesh
@@ -28,12 +59,15 @@ mesh_type = "cylinder"  # "cuboid"
 # time
 # (4.0 / 100 is the standard for longitudinal-only). Smaller dt required with transverse Laplacian.
 T = 4.0
-timeres = 200
+timeres = 800
+output_freq = 4
 
 # model
-nstar = Constant(1.0)
+nstar = Constant(1.0)  # not actually used
+nstar_boost = 100.0  # temporary factor by which density source is boosted
 Temp = 1.0
-visc_coeff = 0.3
+transverse_laplacian = True
+visc_coeff = 0.1
 width_T = 0.05  # transverse width for Gaussian source
 
 output_base = "LAPD-like_CG_v2"
@@ -100,23 +134,27 @@ phi_s = Function(V4)
 
 # source function, amplitude was simple cranked up until nontrivial behaviour was seen
 nstarFunc = Function(V1)
-nstarFunc.interpolate(nstar*0.0 + 100.0*exp(-((x[1]-centre[1])**2+(x[2]-centre[2])**2)/(2*width_T**2)))  # fmt: skip
+nstarFunc.interpolate(nstar*0.0 + nstar_boost*exp(-((x[1]-centre[1])**2+(x[2]-centre[2])**2)/(2*width_T**2)))  # fmt: skip
 
-outpath_ICs = f"{output_base}_init.pvd"
-PETSc.Sys.Print("Writing ICs to ", outpath_ICs)
-VTKFile(outpath_ICs).write(nuw.sub(0), nuw.sub(1), nuw.sub(2))
-
-# dev version with longitudinal and transverse dynamics
-# last 3 terms are the artificial viscosity
+# Weak forms of various terms
+n_adv = v1 * div(n * utot(u, phi_s))
+n_src = v1 * nstarFunc
+nu_term1 = nstarFunc * u * v2
+nu_term2 = v2 * n * inner(grad(u), utot(u, phi_s))
+nu_src = -Temp * grad(n)[0] * v2
+w_adv = v3 * div(w * utot(u, phi_s))
+w_src = -v3 * grad(n * u)[0]
+# Define the full variational problem
 # fmt: off
-F = ((Dt(n)*v1)*dx + (n*Dt(u)*v2 + Dt(w)*v3)*dx) \
-   + (v1*div(n*as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))-v1*nstarFunc)*dx \
-   + (v3*div(w*as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))+v3*grad(n*u)[0])*dx \
-   + (nstarFunc*u*v2+v2*n*inner(grad(u),as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]))+Temp*grad(n)[0]*v2)*dx \
-   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n)-as_vector([0,0,nstarFunc])))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v1)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
-   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(w)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v3)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx \
-   + visc_coeff*(0.5*h*(dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(n*u)))*dot(as_vector([u,grad(phi_s)[2],-grad(phi_s)[1]]),grad(v2)))*(1/sqrt((grad(phi_s)[1])**2+(grad(phi_s)[2])**2+u**2+0.0001))*dx
+F = ((Dt(n)*v1 + n*Dt(u)*v2 + Dt(w)*v3)*dx) \
+   + (n_adv - n_src) * dx \
+   + (nu_term1 + nu_term2 - nu_src) * dx \
+   + (w_adv - w_src) * dx \
+   + art_visc_term(visc_coeff, h, n, v1, u, phi_s, offset=as_vector([0, 0, nstarFunc])) \
+   + art_visc_term(visc_coeff, h, n*u, v2, u, phi_s) \
+   + art_visc_term(visc_coeff, h, w, v3, u, phi_s)
 # fmt: on
+
 # params taken from Cahn-Hilliard example cited above
 params = {
     "snes_monitor": None,
@@ -136,10 +174,14 @@ bc_outflow_2 = DirichletBC(V.sub(1), 1, bdy_lbl_highx)
 
 stepper = TimeStepper(F, butcher_tableau, t, dt, nuw, solver_parameters=params, bcs=[bc_outflow_1, bc_outflow_2])  # fmt: skip
 
-# elliptic solve for potential
-Lphi = inner(grad(phi), grad(v4)) * dx
+# ============= Elliptic solve for potential ==============
+if transverse_laplacian:
+    Lphi = (grad(phi)[1] * grad(v4)[1] + grad(phi)[2] * grad(v4)[2]) * dx
+else:
+    Lphi = inner(grad(phi), grad(v4)) * dx
 Rphi = -w * v4 * dx
-bc1 = DirichletBC(V4, 0, bdy_lbl_all)
+# D0 on all boundaries
+phi_BCs = DirichletBC(V4, 0, bdy_lbl_all)
 
 # this is intended to be direct solver - but now changed to GMRES
 linparams = {
@@ -151,9 +193,8 @@ linparams = {
     "pc_factor_mat_solver_type": "mumps",
 }
 
-nullspace = VectorSpaceBasis(constant=True)
-
-# end of stuff for elliptic solve
+nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
+# ============= End of elliptic solve set up ==============
 
 outfile = VTKFile(f"{output_base}.pvd")
 
@@ -179,6 +220,15 @@ PETSc.Sys.Print(f"    n_*     = {nstar.values()[0]}")
 PETSc.Sys.Print(f"    width_T = {width_T}")
 PETSc.Sys.Print(f"    T       = {T}")
 
+# Assign field names for output
+nuw.sub(0).rename("density")
+nuw.sub(1).rename("velocity")
+nuw.sub(2).rename("vorticity")
+p = Function(V1)
+p.rename("momentum density")
+phi_s.rename("potential")
+
+
 PETSc.Sys.Print("\nTimestep loop:")
 step = 0
 while float(t) < float(T):
@@ -186,16 +236,12 @@ while float(t) < float(T):
     if (float(t) + float(dt)) >= T:
         dt.assign(T - float(t))
         PETSc.Sys.Print(f"  Last dt = {dt}")
-    solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=bc1)  # fmt: skip
+    solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=phi_BCs)  # fmt: skip
 
-    nuw.sub(0).rename("density")
-    nuw.sub(1).rename("velocity")
-    nuw.sub(2).rename("vorticity")
-    p = Function(V1)
-    p.interpolate(nuw.sub(0) * nuw.sub(1))
-    p.rename("momentum density")
-    phi_s.rename("potential")
-    outfile.write(nuw.sub(0), nuw.sub(1), nuw.sub(2), phi_s, p)
+    # Write fields on output steps
+    if step % output_freq == 0:
+        p.interpolate(nuw.sub(0) * nuw.sub(1))
+        outfile.write(nuw.sub(0), nuw.sub(1), nuw.sub(2), phi_s, p)
 
     stepper.advance()
     t.assign(float(t) + float(dt))
