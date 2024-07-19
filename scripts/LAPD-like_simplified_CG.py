@@ -66,6 +66,7 @@ timeres = 800
 nstar = Constant(1.0)  # not actually used
 nstar_boost = 100.0  # temporary factor by which density source is boosted
 Temp = 1.0
+transverse_laplacian = True
 visc_coeff = 0.1
 width_T = 0.025  # transverse width for Gaussian source
 
@@ -174,9 +175,10 @@ bc_outflow_2 = DirichletBC(V.sub(1), 1, bdy_lbl_highx)
 stepper = TimeStepper(F, butcher_tableau, t, dt, nuw, solver_parameters=params, bcs=[bc_outflow_1, bc_outflow_2])  # fmt: skip
 
 # ============= Elliptic solve for potential ==============
-Lphi = (
-    grad(phi)[1] * grad(v4)[1] + grad(phi)[2] * grad(v4)[2]
-) * dx  # transverse Laplacian only
+if transverse_laplacian:
+    Lphi = (grad(phi)[1] * grad(v4)[1] + grad(phi)[2] * grad(v4)[2]) * dx
+else:
+    Lphi = inner(grad(phi), grad(v4)) * dx
 Rphi = -w * v4 * dx
 # D0 on all boundaries
 phi_BCs = DirichletBC(V4, 0, bdy_lbl_all)
