@@ -219,6 +219,15 @@ PETSc.Sys.Print(f"    n_*     = {nstar.values()[0]}")
 PETSc.Sys.Print(f"    width_T = {width_T}")
 PETSc.Sys.Print(f"    T       = {T}")
 
+# Assign field names for output
+nuw.sub(0).rename("density")
+nuw.sub(1).rename("velocity")
+nuw.sub(2).rename("vorticity")
+p = Function(V1)
+p.rename("momentum density")
+phi_s.rename("potential")
+
+
 PETSc.Sys.Print("\nTimestep loop:")
 step = 0
 while float(t) < float(T):
@@ -228,13 +237,7 @@ while float(t) < float(T):
         PETSc.Sys.Print(f"  Last dt = {dt}")
     solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=phi_BCs)  # fmt: skip
 
-    nuw.sub(0).rename("density")
-    nuw.sub(1).rename("velocity")
-    nuw.sub(2).rename("vorticity")
-    p = Function(V1)
     p.interpolate(nuw.sub(0) * nuw.sub(1))
-    p.rename("momentum density")
-    phi_s.rename("potential")
     outfile.write(nuw.sub(0), nuw.sub(1), nuw.sub(2), phi_s, p)
 
     stepper.advance()
