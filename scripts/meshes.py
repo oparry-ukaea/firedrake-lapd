@@ -97,7 +97,7 @@ def _DiskMesh(
 def CylinderMesh(
     radius, nh, dh, refinement_level=3, longitudinal_axis=2, comm=COMM_WORLD
 ):
-    disk = _DiskMesh(radius, refinement_level=refinement_level)
+    disk = _DiskMesh(radius, refinement_level=refinement_level, comm=comm)
     cyl = ExtrudedMesh(disk, nh, layer_height=dh / nh, extrusion_type="uniform")
 
     # Longitudinal axis is 2 after extrusion. Swap coords if necessary
