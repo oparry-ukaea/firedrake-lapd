@@ -66,6 +66,7 @@ output_freq = int(timeres/200)
 nstar = Constant(1.0)  # not actually used
 nstar_boost = 100.0  # temporary factor by which density source is boosted
 Temp = 1.0
+transverse_dynamics_enabled = True
 transverse_laplacian = True
 visc_coeff = 0.1
 width_T = 0.05  # transverse width for Gaussian source
@@ -237,7 +238,10 @@ while float(t) < float(T):
     if (float(t) + float(dt)) >= T:
         dt.assign(T - float(t))
         PETSc.Sys.Print(f"  Last dt = {dt}")
-    solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=phi_BCs)  # fmt: skip
+    if transverse_dynamics_enabled:
+        solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=phi_BCs)  # fmt: skip
+    else:
+        phi_s.interpolate(0.0);
 
     # Write fields on output steps
     if step % output_freq == 0:
