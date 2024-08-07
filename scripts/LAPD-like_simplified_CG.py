@@ -87,6 +87,7 @@ if mesh_type == "cuboid":
     )
     bdy_lbl_lowx = 1
     bdy_lbl_highx = 2
+    bdy_lbl_transverse = [3,4,5,6]
     bdy_lbl_all = "on_boundary"
     centre = [opts["Lx"] / 2, opts["Ly_Lz"] / 2, opts["Ly_Lz"] / 2]
     h = 1.0 / opts["ny_nz"]
