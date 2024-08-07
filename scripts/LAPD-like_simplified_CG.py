@@ -68,7 +68,7 @@ nstar_boost = 100.0  # temporary factor by which density source is boosted
 Temp = 1.0
 transverse_dynamics_enabled = True
 transverse_laplacian = True
-visc_coeff = 0.1
+visc_coeff = 2.0
 width_T = 0.05  # transverse width for Gaussian source
 
 output_base = "LAPD-like_CG_v2"
