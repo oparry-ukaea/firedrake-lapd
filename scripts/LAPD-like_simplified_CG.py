@@ -19,7 +19,7 @@ import math
 from pyop2.mpi import COMM_WORLD
 import time
 
-from common.meshes import CylinderMesh
+from common import CylinderMesh
 
 
 # ============================== Helper functions ==============================
