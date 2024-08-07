@@ -50,24 +50,25 @@ def art_visc_term(
 # ================================ User options ================================
 # mesh
 opts = dict(nx=16, Lx=2.0)
-cuboid_mesh_opts = dict(ny_nz=64, Ly_Lz=0.2, use_hex_mesh=True)
+cuboid_mesh_opts = dict(ny_nz=32, Ly_Lz=0.2, use_hex_mesh=True)
 cylinder_mesh_opts = dict(
     radius=0.1, ref_level=3
 )  # number of cells in each transverse layer is 2^(2*ref_level+3)
-mesh_type = "cylinder"  # "cuboid"
+mesh_type = "cuboid"  # "cylinder"
 
 # time
 # (4.0 / 100 is the standard for longitudinal-only). Smaller dt required with transverse Laplacian.
 T = 4.0
-timeres = 800
-output_freq = 4
+timeres = 400
+output_freq = int(timeres/200)
 
 # model
 nstar = Constant(1.0)  # not actually used
 nstar_boost = 100.0  # temporary factor by which density source is boosted
 Temp = 1.0
+transverse_dynamics_enabled = True
 transverse_laplacian = True
-visc_coeff = 0.1
+visc_coeff = 2.0
 width_T = 0.05  # transverse width for Gaussian source
 
 output_base = "LAPD-like_CG_v2"
@@ -86,6 +87,7 @@ if mesh_type == "cuboid":
     )
     bdy_lbl_lowx = 1
     bdy_lbl_highx = 2
+    bdy_lbl_transverse = [3,4,5,6]
     bdy_lbl_all = "on_boundary"
     centre = [opts["Lx"] / 2, opts["Ly_Lz"] / 2, opts["Ly_Lz"] / 2]
     h = 1.0 / opts["ny_nz"]
@@ -93,7 +95,8 @@ elif mesh_type == "cylinder":
     opts["ncells_tranverse"] = 2 ** (2 * opts["ref_level"] + 3)
     bdy_lbl_lowx = "bottom"
     bdy_lbl_highx = "top"
-    bdy_lbl_all = ("on_boundary", "top", "bottom")
+    bdy_lbl_transverse = "on_boundary"
+    bdy_lbl_all = (bdy_lbl_transverse, bdy_lbl_highx, bdy_lbl_lowx)
     centre = [opts["Lx"] / 2, 0.0, 0.0]
     mesh = CylinderMesh(
         opts["radius"],
@@ -128,13 +131,13 @@ phi = TrialFunction(V4)
 v4 = TestFunction(V4)
 phi_s = Function(V4)
 
-# sonic outflow equilibrium init data
-# nuw.sub(0).interpolate((nstar/sqrt(Temp))*(1+sqrt(1-x[0]*x[0])))
-# nuw.sub(1).interpolate((sqrt(Temp)/(x[0]))*(1-sqrt(1-x[0]*x[0])))
-
 # source function, amplitude was simple cranked up until nontrivial behaviour was seen
 nstarFunc = Function(V1)
 nstarFunc.interpolate(nstar*0.0 + nstar_boost*exp(-((x[1]-centre[1])**2+(x[2]-centre[2])**2)/(2*width_T**2)))  # fmt: skip
+
+# Set ICs
+nuw.sub(1).interpolate(2 * x[0] / opts["Lx"] - 1.0)  # Set sonic outflow from the start
+nuw.sub(0).interpolate(1.0e-4)  # Small, uniform density
 
 # Weak forms of various terms
 n_adv = v1 * div(n * utot(u, phi_s))
@@ -181,7 +184,7 @@ else:
     Lphi = inner(grad(phi), grad(v4)) * dx
 Rphi = -w * v4 * dx
 # D0 on all boundaries
-phi_BCs = DirichletBC(V4, 0, bdy_lbl_all)
+phi_BCs = DirichletBC(V4, 0, bdy_lbl_transverse)
 
 # this is intended to be direct solver - but now changed to GMRES
 linparams = {
@@ -236,7 +239,10 @@ while float(t) < float(T):
     if (float(t) + float(dt)) >= T:
         dt.assign(T - float(t))
         PETSc.Sys.Print(f"  Last dt = {dt}")
-    solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=phi_BCs)  # fmt: skip
+    if transverse_dynamics_enabled:
+        solve(Lphi==Rphi, phi_s, nullspace=nullspace, solver_parameters=linparams, bcs=phi_BCs)  # fmt: skip
+    else:
+        phi_s.interpolate(0.0);
 
     # Write fields on output steps
     if step % output_freq == 0:
