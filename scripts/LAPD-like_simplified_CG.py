@@ -129,13 +129,13 @@ phi = TrialFunction(V4)
 v4 = TestFunction(V4)
 phi_s = Function(V4)
 
-# sonic outflow equilibrium init data
-# nuw.sub(0).interpolate((nstar/sqrt(Temp))*(1+sqrt(1-x[0]*x[0])))
-# nuw.sub(1).interpolate((sqrt(Temp)/(x[0]))*(1-sqrt(1-x[0]*x[0])))
-
 # source function, amplitude was simple cranked up until nontrivial behaviour was seen
 nstarFunc = Function(V1)
 nstarFunc.interpolate(nstar*0.0 + nstar_boost*exp(-((x[1]-centre[1])**2+(x[2]-centre[2])**2)/(2*width_T**2)))  # fmt: skip
+
+# Set ICs
+nuw.sub(1).interpolate(2 * x[0] / opts["Lx"] - 1.0)  # Set sonic outflow from the start
+nuw.sub(0).interpolate(1.0e-4)  # Small, uniform density
 
 # Weak forms of various terms
 n_adv = v1 * div(n * utot(u, phi_s))
