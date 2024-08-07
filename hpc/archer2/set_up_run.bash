@@ -11,7 +11,7 @@ if [ -z "$ACCOUNT" ]; then
     exit 2
 fi
 
-script_names="LAPD-like_simplified_CG.py meshes.py"
+script_plus_dependencies="LAPD-like_simplified_CG.py common"
 
 # Settings
 run_dir="${repo_root}/runs/${run_name}"
@@ -20,7 +20,7 @@ rm -rf "${run_dir}"
 mkdir -p "${run_dir}"
 # Copy Slurm script, setting account, image directory
 sed "${archer_dir}/sub_fd-singularity.slurm" -e "s|\[SET_ACCOUNT_HERE\]|$ACCOUNT|" -e "s|\[SET_IMAGE_DIR_HERE\]|${repo_root}/hpc/archer2/singularity|" > "${run_dir}/sub_fd-singularity.slurm"
-# Copy python script(s)
-for script_name in $script_names; do
-    cp "${repo_root}/scripts/${script_name}" "${run_dir}"
+# Copy python scripts and dependencies
+for file_or_dir in $script_plus_dependencies; do
+    cp -r "${repo_root}/scripts/${file_or_dir}" "${run_dir}"
 done
