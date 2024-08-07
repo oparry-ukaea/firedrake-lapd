@@ -50,7 +50,7 @@ def art_visc_term(
 # ================================ User options ================================
 # mesh
 opts = dict(nx=16, Lx=2.0)
-cuboid_mesh_opts = dict(ny_nz=64, Ly_Lz=0.2, use_hex_mesh=True)
+cuboid_mesh_opts = dict(ny_nz=32, Ly_Lz=0.2, use_hex_mesh=True)
 cylinder_mesh_opts = dict(
     radius=0.1, ref_level=3
 )  # number of cells in each transverse layer is 2^(2*ref_level+3)
@@ -59,8 +59,8 @@ mesh_type = "cuboid"  # "cylinder"
 # time
 # (4.0 / 100 is the standard for longitudinal-only). Smaller dt required with transverse Laplacian.
 T = 4.0
-timeres = 800
-output_freq = 4
+timeres = 400
+output_freq = int(timeres/200)
 
 # model
 nstar = Constant(1.0)  # not actually used
