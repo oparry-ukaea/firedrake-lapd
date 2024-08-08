@@ -1,7 +1,43 @@
 from firedrake import ExtrudedMesh, mesh, TensorBoxMesh, ufl
 import numpy as np
 from pyop2.mpi import COMM_WORLD
+from firedrake import PETSc
 from firedrake.cython import dmcommon
+
+
+def set_up_mesh(opts):
+    try:
+        mesh_opts = opts["mesh"]
+        mesh_type = mesh_opts["type"]
+        if mesh_type == "cuboid":
+            mesh = BoxMesh(
+                mesh_opts["nx"],
+                mesh_opts["ny"],
+                mesh_opts["nz"],
+                mesh_opts["Lx"],
+                mesh_opts["Ly"],
+                mesh_opts["Lz"],
+                lower=(mesh_opts["xmin"], mesh_opts["ymin"], mesh_opts["zmin"]),
+                hexahedral=mesh_opts["use_hex"],
+            )
+        elif mesh_type == "cylinder":
+            ref_level = mesh_opts["ref_level"]
+            # Store num cells in transverse slice
+            mesh_opts["ncells_tranverse"] = 2 ** (2 * ref_level + 3)
+            mesh = CylinderMesh(
+                mesh_opts["radius"],
+                mesh_opts["nz"],
+                mesh_opts["Lz"],
+                longitudinal_axis=mesh_opts["longitudinal_axis"],
+                refinement_level=ref_level,
+            )
+        else:
+            raise ValueError(f"mesh_type [{mesh_type}] not recognised")
+    except KeyError:
+        PETSc.Sys.Print("Unset parameter encountered in set_up_mesh()")
+        raise
+
+    return mesh
 
 
 def BoxMesh(
