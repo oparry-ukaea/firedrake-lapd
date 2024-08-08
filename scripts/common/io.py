@@ -21,3 +21,8 @@ def read_yaml_config(fname, process_derived=None, verbose=True):
         PETSc.Sys.Print(pp_str)
 
     return cfg
+
+
+def set_default_param(cfg, key, default):
+    if not key in cfg:
+        cfg[key] = default
