@@ -27,6 +27,7 @@ def process_params(cfg):
     set_default_param(phys_cfg, "Lz", 18.0)
     # Paper claims m_i = 400 m_e, but can only match rho_s0 (and therefore domain size) with a value of ~3*m_p ...
     set_default_param(phys_cfg, "m_i", 3 * constants["m_p"])
+    set_default_param(phys_cfg, "n_0", 2e18)
     set_default_param(phys_cfg, "omega_ci", 9.6e5)
 
     # Set mesh defaults
@@ -66,6 +67,12 @@ def process_params(cfg):
     model_cfg = cfg["model"]
     model_cfg["Ls"] = 0.5 * phys_cfg["rho_s0"]
     model_cfg["rs"] = 20 * phys_cfg["rho_s0"]
+    model_cfg["S0n"] = (
+        model_cfg["S0n_fac"] * phys_cfg["n_0"] * phys_cfg["c_s0"] / phys_cfg["R"]
+    )
+    model_cfg["S0T"] = (
+        model_cfg["S0T_fac"] * phys_cfg["T_e0"] * phys_cfg["c_s0"] / phys_cfg["R"]
+    )
 
     # # Check quantities in cgs match paper (not quite...)
     # print(f"c_s0 = {100*phys_cfg['c_s0']:.1E} cm/s")
@@ -80,7 +87,7 @@ def src_term(fspace, x, y, var, opts):
     tanh function over mesh coords [x],[y]
     """
     r = sqrt(x * x + y * y)
-    fac = opts["model"][f"S0{var}_fac"]
+    fac = opts["model"][f"S0{var}"]
     Ls = opts["model"]["Ls"]
     rs = opts["model"]["rs"]
     func = Function(fspace)
