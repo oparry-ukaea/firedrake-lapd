@@ -44,6 +44,10 @@ def process_params(cfg):
     constants = dict(e=1.602e-19, kB=8.6173303e-5, m_e=9.1093837e-31, m_p=1.67e-27)
     cfg["constants"] = constants
 
+    # Set model defaults
+    model_cfg = cfg["model"]
+    set_default_param(model_cfg, "is_isothermal", False)
+
     # Set phys defaults
     phys_cfg = cfg["physical"]
     #  N.B. R is plasma column radius, *not* the transverse size of the domain!
@@ -107,7 +111,6 @@ def process_params(cfg):
         mesh_cfg["radius"] = phys_cfg["L"]
 
     # Derived model params
-    model_cfg = cfg["model"]
     model_cfg["Ls"] = 0.5 * phys_cfg["rho_s0"]
     model_cfg["rs"] = 20 * phys_cfg["rho_s0"]
     model_cfg["S0n"] = (
@@ -211,13 +214,21 @@ def rogers_ricci():
     phi_space = FunctionSpace(mesh, "CG", 1)  # phi
 
     # Functions (combine time-evolved function spaces to facilitate interaction with Irksome)
-    combined_space = n_space * ui_space * ue_space * T_space * w_space
-    n_ui_ue_T_w = Function(combined_space)
-    n, ui, ue, T, w = split(n_ui_ue_T_w)
     phi = Function(phi_space)
+    is_isothermal = cfg["model"]["is_isothermal"]
+    if is_isothermal:
+        combined_space = n_space * ui_space * ue_space * w_space
+        time_evo_funcs = Function(combined_space)
+        n, ui, ue, w = split(time_evo_funcs)
+        T = Constant(cfg["physical"]["T_e0"], name="T_e")
+        subspace_indices = dict(n=0, ui=1, ue=2, w=3)
+    else:
+        combined_space = n_space * ui_space * ue_space * T_space * w_space
+        time_evo_funcs = Function(combined_space)
+        n, ui, ue, T, w = split(time_evo_funcs)
+        subspace_indices = dict(n=0, ui=1, ue=2, T=3, w=4)
 
     # Rename fields and set up funcs for output
-    subspace_indices = dict(n=0, ui=1, ue=2, T=3, w=4)
     subspace_names = dict(
         n="density",
         ui="ion velocity",
@@ -225,17 +236,18 @@ def rogers_ricci():
         T="temperature",
         w="vorticity",
     )
-    for fld in ["n", "ue", "ui", "T", "w"]:
-        n_ui_ue_T_w.sub(subspace_indices[fld]).rename(subspace_names[fld])
+    for fld in subspace_indices.keys():
+        time_evo_funcs.sub(subspace_indices[fld]).rename(subspace_names[fld])
     phi.rename("potential")
     output_funcs = [
-        n_ui_ue_T_w.sub(subspace_indices[fld]) for fld in ["n", "ui", "ue", "T", "w"]
+        time_evo_funcs.sub(subspace_indices[fld]) for fld in subspace_indices.keys()
     ]
     output_funcs.append(phi)
 
     # Source functions
     n_src = src_term(n_space, x, y, "n", cfg)
-    T_src = src_term(T_space, x, y, "T", cfg)
+    if not is_isothermal:
+        T_src = src_term(T_space, x, y, "T", cfg)
 
     # Check the source functions look ok
     # outfile = VTKFile(f"src_funcs.pvd")
@@ -282,25 +294,26 @@ def rogers_ricci():
     ]
     bcs = [*ui_bcs, *ue_bcs]
 
-    stepper = nl_solve_setup(F, t, dt, n_ui_ue_T_w, bcs, time_cfg)
+    stepper = nl_solve_setup(F, t, dt, time_evo_funcs, bcs, time_cfg)
 
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
 
     # Initial conditions
 
     # Density = n0
-    n_ui_ue_T_w.sub(subspace_indices["n"]).interpolate(phys_cfg["n_0"])
+    time_evo_funcs.sub(subspace_indices["n"]).interpolate(phys_cfg["n_0"])
     # Ion and electron velocities linear in z, -c_s0 at one end, +c_s0 at the other
-    n_ui_ue_T_w.sub(subspace_indices["ui"]).interpolate(
+    time_evo_funcs.sub(subspace_indices["ui"]).interpolate(
         2 * phys_cfg["c_s0"] * z / phys_cfg["Lz"]
     )
-    n_ui_ue_T_w.sub(subspace_indices["ue"]).interpolate(
+    time_evo_funcs.sub(subspace_indices["ue"]).interpolate(
         2 * phys_cfg["c_s0"] * z / phys_cfg["Lz"]
     )
     # Temperature = T_e0
-    n_ui_ue_T_w.sub(subspace_indices["T"]).interpolate(phys_cfg["T_e0"])
+    if not is_isothermal:
+        time_evo_funcs.sub(subspace_indices["T"]).interpolate(phys_cfg["T_e0"])
     # Vorticity = 0
-    n_ui_ue_T_w.sub(subspace_indices["w"]).interpolate(0)
+    time_evo_funcs.sub(subspace_indices["w"]).interpolate(0)
 
     outfile.write(*output_funcs)
 
