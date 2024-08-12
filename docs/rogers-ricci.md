@@ -57,7 +57,7 @@ Choices:
 Derived values
 | Parameter          | Calculated as                   | Value                               | Comment                                                        |
 | ------------------ | ------------------------------- | ----------------------------------- | -------------------------------------------------------------- |
-| B                  | $\Omega_{ci}*m_i*q_E$           | 40 mT                               |                                                                |
+| B                  | $\Omega_{ci} m_i q_E$           | 40 mT                               |                                                                |
 | $c_{s0}$           | $\sqrt{T_{e0}/m_i}$             | 1.2e4 ms<sup>-1</sup>               | (If $m_i=400 m_e$, this would be $\sim$ 5.1e4 ms<sup>-1</sup>) |
 | $\rho_{s0}$        | $c_{s0}/\Omega{ci}$             | 1.2e-2 m                            | Paper has 1.4e-2 m ... implies $m_i\sim 3 m_p$ !?              |
 | $S_{0n}$           | 0.03 $n_0 c_{s0}/R$             | 4.8e22 m<sup>-3</sup>s<sup>-1</sup> |                                                                |
