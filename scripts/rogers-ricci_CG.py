@@ -72,6 +72,7 @@ def process_params(cfg):
     set_default_param(mesh_cfg, "nz", 64)
 
     # Derived physical params
+    phys_cfg["B"] = phys_cfg["omega_ci"] * phys_cfg["m_i"] / constants["e"]
     phys_cfg["c_s0"] = math.sqrt(phys_cfg["T_e0"] * constants["e"] / phys_cfg["m_i"])
     phys_cfg["rho_s0"] = phys_cfg["c_s0"] / phys_cfg["omega_ci"]
     phys_cfg["c_s0_over_R"] = phys_cfg["c_s0"] / phys_cfg["R"]
