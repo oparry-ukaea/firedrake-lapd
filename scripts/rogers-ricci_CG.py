@@ -227,7 +227,7 @@ def rogers_ricci():
     )
     for fld in ["n", "ue", "ui", "T", "w"]:
         n_ui_ue_T_w.sub(subspace_indices[fld]).rename(subspace_names[fld])
-    phi.rename("vorticity")
+    phi.rename("potential")
     output_funcs = [
         n_ui_ue_T_w.sub(subspace_indices[fld]) for fld in ["n", "ui", "ue", "T", "w"]
     ]
