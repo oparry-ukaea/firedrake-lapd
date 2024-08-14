@@ -2,7 +2,7 @@ mesh:
   type: cuboid
   nx: 64
   ny: 64
-  nz: 4
+  nz: 16
 model:
   is_isothermal: True
   S0n_fac: 0.03
