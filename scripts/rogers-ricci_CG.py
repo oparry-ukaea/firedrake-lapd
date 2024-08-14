@@ -231,7 +231,7 @@ def src_term(fspace, x, y, var, cfg):
     fac = cfg["model"][f"S0{var}"]
     Ls = cfg["model"]["Ls"]
     rs = cfg["model"]["rs"]
-    func = Function(fspace)
+    func = Function(fspace, name=f"{var}_src")
     func.interpolate(fac * (1 - tanh((r - rs) / Ls)) / 2)
     return func
 
@@ -291,9 +291,12 @@ def rogers_ricci():
     if not is_isothermal:
         T_src = src_term(T_space, x, y, "T", cfg)
 
-    # Check the source functions look ok
+    # # Check the source functions look ok
     # outfile = VTKFile(f"src_funcs.pvd")
-    # outfile.write(n_src, T_src)
+    # if is_isothermal:
+    #     outfile.write(n_src)
+    # else:
+    #     outfile.write(n_src, T_src)
 
     phi_eqn, phi_bcs, phi_solve_params = phi_solve_setup(phi_space, w, cfg["mesh"])
 
