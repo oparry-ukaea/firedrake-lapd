@@ -42,7 +42,7 @@ def normalise(cfg):
         phi=constants["e"] / phys["T_e0"],
         time=phys["c_s0"] / phys["R"],
     )
-    cfg["norm"] = norm
+    cfg["norm_factors"] = norm
 
     # Space norm
     mesh["Lz"] = mesh["Lz"] * norm["Lpar"]
@@ -58,21 +58,15 @@ def normalise(cfg):
     for key in ["t_init", "t_end"]:
         time[key] = time[key] * norm["time"]
 
-    # Temperature, density, velocity norms applied via initial conditions
-    # Density = n0
-    # Ion and electron velocities max abs value is c_s0
-    # Temperature = T_e0
-    cfg["init"] = dict(
-        n=phys["n_0"] * norm["n"],
-        T=phys["T_e0"] * norm["T"],
-        u_max=phys["c_s0"] * norm["Lpar"] / norm["time"],
-    )
-
-    cfg["srcs"] = dict(
+    # Store some other normalised quantities for use in the ICs and BCs
+    cfg["normalised"] = dict(
         Ls=model["Ls"] * norm["Ltrans"],
+        n_ref=phys["n_0"] * norm["n"],
         rs=model["rs"] * norm["Ltrans"],
         S0n=model["S0n"] * norm["n"] / norm["time"],
         s0T=model["S0T"] * norm["T"] / norm["time"],
+        T_ref=phys["T_e0"] * norm["T"],
+        u_ref=phys["c_s0"] * norm["Lpar"] / norm["time"],
     )
 
 
@@ -231,9 +225,9 @@ def src_term(fspace, x, y, var, cfg):
     tanh function over mesh coords [x],[y]
     """
     r = sqrt(x * x + y * y)
-    fac = cfg["srcs"][f"S0{var}"]
-    Ls = cfg["srcs"]["Ls"]
-    rs = cfg["srcs"]["rs"]
+    fac = cfg["normalised"][f"S0{var}"]
+    Ls = cfg["normalised"]["Ls"]
+    rs = cfg["normalised"]["rs"]
     func = Function(fspace, name=f"{var}_src")
     func.interpolate(fac * (1 - tanh((r - rs) / Ls)) / 2)
     return func
@@ -265,7 +259,7 @@ def rogers_ricci():
         combined_space = n_space * ui_space * ue_space * w_space
         time_evo_funcs = Function(combined_space)
         n, ui, ue, w = split(time_evo_funcs)
-        T = Constant(cfg["init"]["T"], name="T")
+        T = Constant(cfg["normalised"]["T_ref"], name="T")
         subspace_indices = dict(n=0, ui=1, ue=2, w=3)
     else:
         combined_space = n_space * ui_space * ue_space * T_space * w_space
@@ -369,14 +363,14 @@ def rogers_ricci():
         par_bdy_lbl_upper = "top"
 
     # Set up Bohm BCs for ui,ue
-    phys_cfg = cfg["physical"]
-    cs = phys_cfg["c_s0"]
-    coulomb_log = phys_cfg["Lambda"]
+    norm_cfg = cfg["normalised"]
+    cs = norm_cfg["u_ref"]
     ui_bcs = [
         DirichletBC(combined_space.sub(subspace_indices["ui"]), -cs, par_bdy_lbl_lower),
         DirichletBC(combined_space.sub(subspace_indices["ui"]), cs, par_bdy_lbl_upper),
     ]
     # Excluding phi, T dependence from ue BCs for now
+    coulomb_log = cfg["physical"]["Lambda"]
     ue_bcs = [
         DirichletBC(
             combined_space.sub(subspace_indices["ue"]),
@@ -396,17 +390,16 @@ def rogers_ricci():
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
 
     # Initial conditions
-    init_cfg = cfg["init"]
-    time_evo_funcs.sub(subspace_indices["n"]).interpolate(init_cfg["n"])
-    # Ion and electron velocities linear in z
+    time_evo_funcs.sub(subspace_indices["n"]).interpolate(norm_cfg["n_ref"])
+    # Ion and electron velocities are initially linear in z
     time_evo_funcs.sub(subspace_indices["ui"]).interpolate(
-        2 * init_cfg["u_max"] * z / mesh_cfg["Lz"]
+        2 * norm_cfg["u_ref"] * z / mesh_cfg["Lz"]
     )
     time_evo_funcs.sub(subspace_indices["ue"]).interpolate(
-        2 * init_cfg["u_max"] * z / mesh_cfg["Lz"]
+        2 * norm_cfg["u_ref"] * z / mesh_cfg["Lz"]
     )
     if not is_isothermal:
-        time_evo_funcs.sub(subspace_indices["T"]).interpolate(init_cfg["T"])
+        time_evo_funcs.sub(subspace_indices["T"]).interpolate(norm_cfg["T_ref"])
     # Vorticity = 0
     time_evo_funcs.sub(subspace_indices["w"]).interpolate(0)
 
