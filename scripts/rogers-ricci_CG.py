@@ -36,7 +36,7 @@ def normalise(cfg):
     norm = dict(
         n=1 / phys["n_0"],
         Ltrans=1 / 100 * phys["rho_s0"],
-        Lpar=1,
+        Lpar=1 / phys["R"],
         T=1 / phys["T_e0"],
         phi=constants["e"] / phys["T_e0"],
         time=phys["R"] / phys["c_s0"],
@@ -56,6 +56,9 @@ def normalise(cfg):
     time = cfg["time"]
     for key in ["t_init", "t_end"]:
         time[key] = time[key] * norm["time"]
+
+    # Density norm
+    phys["n_0"] * norm["n"]
 
     # Temperature norm
     phys["T_e0"] = phys["T_e0"] * norm["T"]
@@ -392,10 +395,10 @@ def rogers_ricci():
     time_evo_funcs.sub(subspace_indices["n"]).interpolate(phys_cfg["n_0"])
     # Ion and electron velocities linear in z, -c_s0 at one end, +c_s0 at the other
     time_evo_funcs.sub(subspace_indices["ui"]).interpolate(
-        2 * phys_cfg["c_s0"] * z / phys_cfg["Lz"]
+        2 * phys_cfg["c_s0"] * z / mesh_cfg["Lz"]
     )
     time_evo_funcs.sub(subspace_indices["ue"]).interpolate(
-        2 * phys_cfg["c_s0"] * z / phys_cfg["Lz"]
+        2 * phys_cfg["c_s0"] * z / mesh_cfg["Lz"]
     )
     # Temperature = T_e0
     if not is_isothermal:
