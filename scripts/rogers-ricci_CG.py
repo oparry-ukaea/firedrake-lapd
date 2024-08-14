@@ -273,6 +273,7 @@ def rogers_ricci():
         par_bdy_lbl_upper = "top"
 
     # Set up Bohm BCs for ui,ue
+    phys_cfg = cfg["physical"]
     cs = phys_cfg["c_s0"]
     coulomb_log = phys_cfg["Lambda"]
     ui_bcs = [
