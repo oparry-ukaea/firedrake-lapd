@@ -64,9 +64,23 @@ Derived values
 | $S_{0T}$           | 0.03 $T_{e0} c_{s0} / R$        | 4318.4 Ks<sup>-1</sup>              |                                                                |
 | $\sigma_\parallel$ | $e^2 n_0 R / (0.03 m_i c_{s0})$ | 10676.0                             |                                                                |
 
-## Boundary Conditions
+### Other implementation details
 
-Bohm BCs at the end walls: ($z = \pm L_z/2$): $u_i= \pm c_s$, $u_e=\pm exp(\Lambda - e\phi/T_e)$
+#### Boundary conditions
+Bohm BCs for velocities at the end walls ($z = \pm L_z/2$): $u_i= \pm c_s$, $u_e=\pm exp(\Lambda - e\phi/T_e)$. All other BCs are homogeneous Neumann.
+
+#### Normalisation
+
+Normalisations follow those in Rogers & Ricci, that is:
+
+|               | Normalised to   |
+| ------------- | --------------- |
+| $n$           | $n_0$           |
+| $L_\perp$     | $100 \rho_{s0}$ |
+| $L_\parallel$ | $R$             |
+| $T$           | $T_{e0}$        |
+| $\phi$        | $e/T_{e0}$      |
+| $t$           | $R/c_{S0}$      |
 
 ## CG version
 
