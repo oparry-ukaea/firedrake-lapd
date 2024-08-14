@@ -8,11 +8,11 @@ Model based on the finite difference implementation described in "*Low-frequency
 
 $$
 \begin{aligned}
-\dot{n} &= -\nabla_{\parallel}(n u_e) + S_n \\
-\dot{u_i} &= -u_i\nabla_{\parallel}(u_i) - \frac{1}{n} \nabla_{\parallel}(p_e) \\
-m_e\dot{u_e} &= -m_e u_e\nabla_{\parallel}(u_e) - \frac{T_e}{n}\nabla_{\parallel}(n) + e\nabla_{\parallel}(\phi) - 1.71\nabla_{\parallel}(T_e) + \frac{e j_\parallel}{\sigma_\parallel} \\
-\dot{T_e} &= \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel - \frac{2}{3}T_e\nabla_{\parallel}(u_e) - u_e\nabla_{\parallel}(T_e) + S_T\\
-\dot{\omega} &= -u_i\nabla_\parallel \omega + \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel\\
+\dot{n} &= -\nabla_{\parallel}(n u_e) + S_n ~~~(1)\\
+\dot{u_i} &= -u_i\nabla_{\parallel}(u_i) - \frac{1}{n} \nabla_{\parallel}(p_e)~~~(2)\\
+m_e\dot{u_e} &= -m_e u_e\nabla_{\parallel}(u_e) - \frac{T_e}{n}\nabla_{\parallel}(n) + e\nabla_{\parallel}(\phi) - 1.71\nabla_{\parallel}(T_e) + \frac{e j_\parallel}{\sigma_\parallel}~~~(3)\\
+\dot{T_e} &= \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel - \frac{2}{3}T_e\nabla_{\parallel}(u_e) - u_e\nabla_{\parallel}(T_e) + S_T~~~(4)\\
+\dot{\omega} &= -u_i\nabla_\parallel \omega + \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel~~~(5)\\
 \nabla_{\perp}^2 \phi &= \omega
 \end{aligned}
 $$
@@ -40,7 +40,7 @@ $$
 
 where $r = \sqrt{x^2 + y^2}$
 
-Choices:
+## Parameter Choices
 
 | Parameter     | Value               | Comment                                                                                                          |
 | ------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -64,10 +64,6 @@ Derived values
 | $S_{0T}$           | 0.03 $T_{e0} c_{s0} / R$        | 4318.4 Ks<sup>-1</sup>              |                                                                |
 | $\sigma_\parallel$ | $e^2 n_0 R / (0.03 m_i c_{s0})$ | 10676.0                             |                                                                |
 
-## Weak Form
-
-To be added
-
 ## Boundary Conditions
 
 Bohm BCs at the end walls: ($z = \pm L_z/2$): $u_i= \pm c_s$, $u_e=\pm exp(\Lambda - e\phi/T_e)$
@@ -75,6 +71,23 @@ Bohm BCs at the end walls: ($z = \pm L_z/2$): $u_i= \pm c_s$, $u_e=\pm exp(\Lamb
 ## CG version
 
 Script: [rogers-ricci_CG.py](../scripts/rogers-ricci_CG.py)
+
+### Weak Form
+
+Equations 1-5 are discretised over a domain $\Omega$ using a continuous Galerkin formulation.
+The functions $n$, $u_i$, $u_e$, $T$ and $\omega$, and respective test functions $v_1$, $v_2$, $v_3$, $v_4$ and $v_5$ live in separate CG function spaces ($V_1$ - $V_5$) which need not be of the same polynomial order.
+
+The weak form of the equations, below are written using the shorthand $\left< f(n), v_1 \right> \equiv \int_\Omega f(n) v_1 d\mathbf{x}$ to indicate the standard process of multiplying terms by a test function and integrating over the domain. In practice we look for a solution in the combined function space $V=V_1\times V_2\times V_3\times V_4\times V_5$ where
+
+$$
+\begin{aligned}
+\left<\dot{n}, v_1 \right> + \left<\nabla_{\parallel}(n u_e), v_1 \right> - \left<S_n, v_1 \right> \\
++ \left<\dot{u_i}, v_2 \right> + \left<u_i\nabla_{\parallel}(u_i), v_2 \right> + \left<\frac{1}{n} \nabla_{\parallel}(p_e), v_2 \right>\\
++ \left<m_e\dot{u_e}, v_3 \right> + \left<m_e u_e\nabla_{\parallel}(u_e), v_3 \right> + \left<\frac{T_e}{n}\nabla_{\parallel}(n), v_3 \right> - \left<e\nabla_{\parallel}(\phi), v_3 \right> + \left<1.71\nabla_{\parallel}(T_e), v_3 \right> - \left<\frac{e j_\parallel}{\sigma_\parallel}, v_3 \right>\\
++ \left<\dot{T_e}, v_4 \right> - \left<\frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel, v_4 \right> + \left<\frac{2}{3}T_e\nabla_{\parallel}(u_e), v_4 \right> + \left<u_e\nabla_{\parallel}(T_e), v_4 \right> - \left<S_T, v_4 \right>\
++ \left<\dot{\omega}, v_5 \right> + \left<u_i\nabla_\parallel \omega, v_5 \right> - \left<\frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel, v_5 \right> &= 0 ~~~(6)\\
+\end{aligned}
+$$
 
 <!-- ## DG version
 

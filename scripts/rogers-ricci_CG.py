@@ -294,8 +294,56 @@ def rogers_ricci():
 
     phi_eqn, phi_bcs, phi_solve_params = phi_solve_setup(phi_space, w, cfg["mesh"])
 
-    # ToDo: Weak form
-    F = 0
+    # Assemble variational problem
+    if is_isothermal:
+        n_test, ui_test, ue_test, w_test = TestFunctions(combined_space)
+    else:
+        n_test, ui_test, ue_test, T_test, w_test = TestFunctions(combined_space)
+    # fmt: off
+    n_terms = (
+        Dt(n) * n_test * dx
+        + (grad(n * ue)[2] * n_test) * dx
+        - (n_src * n_test) * dx
+    )
+    ui_terms = (
+        Dt(ui) * ui_test * dx
+        + (ui * grad(ui)[2] * ui_test) * dx
+        + (grad(n * T)[2] / n * ui_test) * dx
+    )
+
+    m_e = cfg["constants"]["m_e"]
+    charge_e = cfg["constants"]["e"]
+    j_par = charge_e * n * (ui - ue)
+    phys_cfg = cfg["physical"]
+    sigma_par = phys_cfg["sigma_par"]
+    ue_terms = (
+        m_e * Dt(ue) * ue_test * dx
+        + (m_e * ue * grad(ue)[2] * ue_test) * dx
+        + (T / n * grad(n)[2] * ue_test) * dx
+        - (charge_e * grad(phi)[2] * ue_test) * dx
+        - (charge_e * j_par / sigma_par * ue_test) * dx
+    )
+    if is_isothermal:
+        T_terms = 0
+    else:
+        ue_terms += (1.71 * grad(T)[2] * ue_test) * dx
+        T_terms = (
+            Dt(T) * T_test * dx
+            - (2.0 / 3 * T / charge_e / n * 0.71 * grad(j_par)[2] * T_test) * dx
+            + (2.0 / 3 * T * grad(ue)[2] * T_test) * dx
+            + (ue * grad(T)[2] * T_test) * dx
+            - (T_src * T_test) * dx
+        )
+
+    Omega_ci = phys_cfg["omega_ci"]
+    m_i = phys_cfg["m_i"]
+    w_terms = (
+        Dt(w) * w_test * dx
+        + (ui * grad(w)[2] * w_test) * dx
+        - (m_i * Omega_ci * Omega_ci / charge_e / charge_e / n * grad(j_par)[2] * w_test) * dx
+    )
+    # fmt: on
+    F = n_terms + ui_terms + ue_terms + T_terms + w_terms
 
     time_cfg = cfg["time"]
     t = Constant(time_cfg["t_init"])
