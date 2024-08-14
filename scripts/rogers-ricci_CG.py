@@ -30,22 +30,25 @@ def normalise(cfg):
     # Shorter references to various config sections for the sake of brevity
     constants = cfg["constants"]
     mesh = cfg["mesh"]
+    model = cfg["model"]
     phys = cfg["physical"]
 
     # Normalisation factors (T fac is in 1/eV... does it need to be in 1/K?)
     norm = dict(
         n=1 / phys["n_0"],
-        Ltrans=1 / 100 * phys["rho_s0"],
+        Ltrans=1 / phys["rho_s0"],
         Lpar=1 / phys["R"],
         T=1 / phys["T_e0"],
         phi=constants["e"] / phys["T_e0"],
-        time=phys["R"] / phys["c_s0"],
+        time=phys["c_s0"] / phys["R"],
     )
     cfg["norm"] = norm
 
     # Space norm
+    for key in ["Ls", "rs"]:
+        model[key] = model[key] * norm["Ltrans"]
     mesh["Lz"] = mesh["Lz"] * norm["Lpar"]
-    mesh["zmin"] = mesh["Lz"] * norm["Lpar"]
+    mesh["zmin"] = mesh["zmin"] * norm["Lpar"]
     if mesh["type"] == "cuboid":
         for key in ["Lx", "Ly", "xmin", "ymin"]:
             mesh[key] = mesh[key] * norm["Ltrans"]
@@ -57,11 +60,15 @@ def normalise(cfg):
     for key in ["t_init", "t_end"]:
         time[key] = time[key] * norm["time"]
 
-    # Density norm
-    phys["n_0"] * norm["n"]
-
-    # Temperature norm
-    phys["T_e0"] = phys["T_e0"] * norm["T"]
+    # Temperature, density, velocity norms applied via initial conditions
+    # Density = n0
+    # Ion and electron velocities max abs value is c_s0
+    # Temperature = T_e0
+    cfg["init"] = dict(
+        n=phys["n_0"] * norm["n"],
+        T=phys["T_e0"] * norm["T"],
+        u_max=phys["c_s0"] * norm["Lpar"] / norm["time"],
+    )
 
 
 def process_params(cfg):
@@ -129,14 +136,7 @@ def process_params(cfg):
         / phys_cfg["nu"]
     )
 
-    # Normalisation factors
-    cfg["norm"] = dict(
-        n=1 / phys_cfg["n_0"],
-        T=1 / phys_cfg["T_e0"],
-        phi=constants["e"] / phys_cfg["T_e0"],
-    )
-
-    # Derived mesh params (could add normalisation here)
+    # Derived mesh params
     mesh_cfg["Lz"] = phys_cfg["Lz"]
     mesh_cfg["zmin"] = -phys_cfg["Lz"] / 2
     if mesh_type == "cuboid":
@@ -162,8 +162,6 @@ def process_params(cfg):
     # print(f"c_s0 = {100*phys_cfg['c_s0']:.1E} cm/s")
     # print(f"rho_s0 = {100*phys_cfg['rho_s0']:.1E} cm")
     # print(f"c_s0_over_R = {phys_cfg['c_s0_over_R']:.1E} Hz")
-
-    normalise(cfg)
 
 
 def nl_solve_setup(F, t, dt, n_ui_ue_T_w, bcs, cfg):
@@ -262,7 +260,7 @@ def rogers_ricci():
         combined_space = n_space * ui_space * ue_space * w_space
         time_evo_funcs = Function(combined_space)
         n, ui, ue, w = split(time_evo_funcs)
-        T = Constant(cfg["physical"]["T_e0"], name="T_e")
+        T = Constant(cfg["init"]["T"], name="T")
         subspace_indices = dict(n=0, ui=1, ue=2, w=3)
     else:
         combined_space = n_space * ui_space * ue_space * T_space * w_space
@@ -393,19 +391,17 @@ def rogers_ricci():
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
 
     # Initial conditions
-
-    # Density = n0
-    time_evo_funcs.sub(subspace_indices["n"]).interpolate(phys_cfg["n_0"])
-    # Ion and electron velocities linear in z, -c_s0 at one end, +c_s0 at the other
+    init_cfg = cfg["init"]
+    time_evo_funcs.sub(subspace_indices["n"]).interpolate(init_cfg["n"])
+    # Ion and electron velocities linear in z
     time_evo_funcs.sub(subspace_indices["ui"]).interpolate(
-        2 * phys_cfg["c_s0"] * z / mesh_cfg["Lz"]
+        2 * init_cfg["u_max"] * z / mesh_cfg["Lz"]
     )
     time_evo_funcs.sub(subspace_indices["ue"]).interpolate(
-        2 * phys_cfg["c_s0"] * z / mesh_cfg["Lz"]
+        2 * init_cfg["u_max"] * z / mesh_cfg["Lz"]
     )
-    # Temperature = T_e0
     if not is_isothermal:
-        time_evo_funcs.sub(subspace_indices["T"]).interpolate(phys_cfg["T_e0"])
+        time_evo_funcs.sub(subspace_indices["T"]).interpolate(init_cfg["T"])
     # Vorticity = 0
     time_evo_funcs.sub(subspace_indices["w"]).interpolate(0)
 
