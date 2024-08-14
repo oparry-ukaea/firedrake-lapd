@@ -4,7 +4,7 @@ import yaml
 from firedrake import PETSc
 
 
-def read_yaml_config(fname, process_derived=None, verbose=True):
+def read_yaml_config(fname, process_derived=None, normalise=None, verbose=True):
     root_dir = os.path.dirname(os.path.dirname(__file__))
     fpath = os.path.join(root_dir, fname)
     with open(fpath) as fh:
@@ -20,6 +20,12 @@ def read_yaml_config(fname, process_derived=None, verbose=True):
         PETSc.Sys.Print(f"Options read from {fpath}: ")
         PETSc.Sys.Print(pp_str)
 
+    if normalise is not None:
+        normalise(cfg)
+        if verbose:
+            pp_str = pprint.pformat(cfg, depth=2)
+            PETSc.Sys.Print(f"Normalised config: ")
+            PETSc.Sys.Print(pp_str)
     return cfg
 
 

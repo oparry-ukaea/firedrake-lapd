@@ -26,6 +26,41 @@ from pyop2.mpi import COMM_WORLD
 import time
 
 
+def normalise(cfg):
+    # Shorter references to various config sections for the sake of brevity
+    constants = cfg["constants"]
+    mesh = cfg["mesh"]
+    phys = cfg["physical"]
+
+    # Normalisation factors (T fac is in 1/eV... does it need to be in 1/K?)
+    norm = dict(
+        n=1 / phys["n_0"],
+        Ltrans=1 / 100 * phys["rho_s0"],
+        Lpar=1,
+        T=1 / phys["T_e0"],
+        phi=constants["e"] / phys["T_e0"],
+        time=phys["R"] / phys["c_s0"],
+    )
+    cfg["norm"] = norm
+
+    # Space norm
+    mesh["Lz"] = mesh["Lz"] * norm["Lpar"]
+    mesh["zmin"] = mesh["Lz"] * norm["Lpar"]
+    if mesh["type"] == "cuboid":
+        for key in ["Lx", "Ly", "xmin", "ymin"]:
+            mesh[key] = mesh[key] * norm["Ltrans"]
+    elif mesh["type"] == "cylinder":
+        mesh["radius"] = mesh["radius"] * norm["Ltrans"]
+
+    # Time norm
+    time = cfg["time"]
+    for key in ["t_init", "t_end"]:
+        time[key] = time[key] * norm["time"]
+
+    # Temperature norm
+    phys["T_e0"] = phys["T_e0"] * norm["T"]
+
+
 def process_params(cfg):
     """
     Set some default parameter values and add derived parameters
@@ -91,7 +126,7 @@ def process_params(cfg):
         / phys_cfg["nu"]
     )
 
-    # Normalisation factors (T fac is in 1/eV... does it need to be in 1/K?)
+    # Normalisation factors
     cfg["norm"] = dict(
         n=1 / phys_cfg["n_0"],
         T=1 / phys_cfg["T_e0"],
@@ -124,6 +159,8 @@ def process_params(cfg):
     # print(f"c_s0 = {100*phys_cfg['c_s0']:.1E} cm/s")
     # print(f"rho_s0 = {100*phys_cfg['rho_s0']:.1E} cm")
     # print(f"c_s0_over_R = {phys_cfg['c_s0_over_R']:.1E} Hz")
+
+    normalise(cfg)
 
 
 def nl_solve_setup(F, t, dt, n_ui_ue_T_w, bcs, cfg):
@@ -200,7 +237,9 @@ def rogers_ricci():
     start = time.time()
 
     # Read config file (expected next to this script)
-    cfg = read_yaml_config("rogers-ricci_config.yml", process_derived=process_params)
+    cfg = read_yaml_config(
+        "rogers-ricci_config.yml", process_derived=process_params, normalise=normalise
+    )
     # Generate mesh
     mesh = set_up_mesh(cfg)
     x, y, z = SpatialCoordinate(mesh)
