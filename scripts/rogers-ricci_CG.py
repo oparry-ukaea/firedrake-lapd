@@ -45,8 +45,6 @@ def normalise(cfg):
     cfg["norm"] = norm
 
     # Space norm
-    for key in ["Ls", "rs"]:
-        model[key] = model[key] * norm["Ltrans"]
     mesh["Lz"] = mesh["Lz"] * norm["Lpar"]
     mesh["zmin"] = mesh["zmin"] * norm["Lpar"]
     if mesh["type"] == "cuboid":
@@ -68,6 +66,13 @@ def normalise(cfg):
         n=phys["n_0"] * norm["n"],
         T=phys["T_e0"] * norm["T"],
         u_max=phys["c_s0"] * norm["Lpar"] / norm["time"],
+    )
+
+    cfg["srcs"] = dict(
+        Ls=model["Ls"] * norm["Ltrans"],
+        rs=model["rs"] * norm["Ltrans"],
+        S0n=model["S0n"] * norm["n"] / norm["time"],
+        s0T=model["S0T"] * norm["T"] / norm["time"],
     )
 
 
@@ -226,9 +231,9 @@ def src_term(fspace, x, y, var, cfg):
     tanh function over mesh coords [x],[y]
     """
     r = sqrt(x * x + y * y)
-    fac = cfg["model"][f"S0{var}"]
-    Ls = cfg["model"]["Ls"]
-    rs = cfg["model"]["rs"]
+    fac = cfg["srcs"][f"S0{var}"]
+    Ls = cfg["srcs"]["Ls"]
+    rs = cfg["srcs"]["rs"]
     func = Function(fspace, name=f"{var}_src")
     func.interpolate(fac * (1 - tanh((r - rs) / Ls)) / 2)
     return func
