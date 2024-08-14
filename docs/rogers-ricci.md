@@ -81,11 +81,12 @@ The weak form of the equations, below are written using the shorthand $\left< f(
 
 $$
 \begin{aligned}
-\left<\dot{n}, v_1 \right> + \left<\nabla_{\parallel}(n u_e), v_1 \right> - \left<S_n, v_1 \right> \\
-+ \left<\dot{u_i}, v_2 \right> + \left<u_i\nabla_{\parallel}(u_i), v_2 \right> + \left<\frac{1}{n} \nabla_{\parallel}(p_e), v_2 \right>\\
-+ \left<m_e\dot{u_e}, v_3 \right> + \left<m_e u_e\nabla_{\parallel}(u_e), v_3 \right> + \left<\frac{T_e}{n}\nabla_{\parallel}(n), v_3 \right> - \left<e\nabla_{\parallel}(\phi), v_3 \right> + \left<1.71\nabla_{\parallel}(T_e), v_3 \right> - \left<\frac{e j_\parallel}{\sigma_\parallel}, v_3 \right>\\
-+ \left<\dot{T_e}, v_4 \right> - \left<\frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel, v_4 \right> + \left<\frac{2}{3}T_e\nabla_{\parallel}(u_e), v_4 \right> + \left<u_e\nabla_{\parallel}(T_e), v_4 \right> - \left<S_T, v_4 \right>\
-+ \left<\dot{\omega}, v_5 \right> + \left<u_i\nabla_\parallel \omega, v_5 \right> - \left<\frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel, v_5 \right> &= 0 ~~~(6)\\
+&\left< \dot{n}, v_1 \right> + \left<\nabla_{\parallel}(n u_e), v_1 \right> - \left< S_n, v_1 \right>\\
+&+\left< \dot{u_i}, v_2 \right> + \left< u_i\nabla_{\parallel}(u_i), v_2 \right> + \left< \frac{1}{n} \nabla_{\parallel}(p_e), v_2 \right>\\
+&+\left< m_e\dot{u_e}, v_3 \right> + \left< m_e u_e\nabla_{\parallel}(u_e), v_3 \right> + \left< \frac{T_e}{n}\nabla_{\parallel}(n), v_3 \right> - \left< e\nabla_{\parallel}(\phi), v_3 \right> + \left< 1.71\nabla_{\parallel}(T_e), v_3 \right> - \left< \frac{e j_\parallel}{\sigma_\parallel}, v_3 \right>\\
+&+\left< \dot{T_e}, v_4 \right> - \left< \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel, v_4 \right> + \left< \frac{2}{3}T_e\nabla_{\parallel}(u_e), v_4 \right> + \left< u_e\nabla_{\parallel}(T_e), v_4 \right> - \left< S_T, v_4 \right>\\
+&+\left< \dot{\omega}, v_5 \right> + \left< u_i\nabla_\parallel \omega, v_5 \right> - \left< \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel, v_5 \right>\\
+&= 0
 \end{aligned}
 $$
 
