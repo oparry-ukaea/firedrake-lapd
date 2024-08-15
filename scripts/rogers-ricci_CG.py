@@ -62,7 +62,7 @@ def normalise(cfg):
 
     # Store some other normalised quantities for use in the ICs and BCs
     cfg["normalised"] = dict(
-        charge_e=phys["charge_e"] * norm["charge"],
+        e=constants["e"] * norm["charge"],
         Ls=model["Ls"] * norm["Ltrans"],
         m_e=phys["m_e"] * norm["mass"],
         m_i=phys["m_i"] * norm["mass"],
