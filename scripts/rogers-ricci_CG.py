@@ -67,7 +67,14 @@ def normalise(cfg):
         m_e=phys["m_e"] * norm["mass"],
         m_i=phys["m_i"] * norm["mass"],
         n_ref=phys["n_0"] * norm["n"],
+        omega_ci=phys["omega_ci"] / norm["time"],
         rs=model["rs"] * norm["Ltrans"],
+        sigma_par=phys["sigma_par"]
+        * norm["time"]
+        * norm["n"]
+        * norm["charge"]
+        * norm["charge"]
+        / norm["mass"],
         S0n=model["S0n"] * norm["n"] / norm["time"],
         s0T=model["S0T"] * norm["T"] / norm["time"],
         T_ref=phys["T_e0"] * norm["T"],
@@ -326,8 +333,7 @@ def rogers_ricci():
     m_e = norm_cfg["m_e"]
     charge_e = norm_cfg["e"]
     j_par = charge_e * n * (ui - ue)
-    phys_cfg = cfg["physical"]
-    sigma_par = phys_cfg["sigma_par"]
+    sigma_par = norm_cfg["sigma_par"]
     ue_terms = (
         m_e * Dt(ue) * ue_test * dx
         + (m_e * ue * grad(ue)[2] * ue_test) * dx
@@ -347,6 +353,7 @@ def rogers_ricci():
             - (T_src * T_test) * dx
         )
 
+    Omega_ci = norm_cfg["omega_ci"]
     m_i = norm_cfg["m_i"]
     w_terms = (
         Dt(w) * w_test * dx
