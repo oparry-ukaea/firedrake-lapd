@@ -35,6 +35,7 @@ def normalise(cfg):
 
     # Normalisation factors (T fac is in 1/eV... does it need to be in 1/K?)
     norm = dict(
+        charge=1 / constants["e"],
         mass=1 / phys["m_i"],
         n=1 / phys["n_0"],
         Ltrans=1 / phys["rho_s0"],
@@ -61,6 +62,7 @@ def normalise(cfg):
 
     # Store some other normalised quantities for use in the ICs and BCs
     cfg["normalised"] = dict(
+        charge_e=phys["charge_e"] * norm["charge"],
         Ls=model["Ls"] * norm["Ltrans"],
         m_e=phys["m_e"] * norm["mass"],
         m_i=phys["m_i"] * norm["mass"],
@@ -322,7 +324,7 @@ def rogers_ricci():
 
     norm_cfg = cfg["normalised"]
     m_e = norm_cfg["m_e"]
-    charge_e = cfg["constants"]["e"]
+    charge_e = norm_cfg["e"]
     j_par = charge_e * n * (ui - ue)
     phys_cfg = cfg["physical"]
     sigma_par = phys_cfg["sigma_par"]

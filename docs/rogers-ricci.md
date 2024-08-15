@@ -78,14 +78,18 @@ Normalisations follow those in Rogers & Ricci, that is:
 Based on Fig 4. of Rogers & Ricci, looks like total simulation time is $\sim 12$.
 Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0}$ before normalisation.
 
-|               | Normalised to   |
-| ------------- | --------------- |
-| $n$           | $n_0$           |
-| $L_\perp$     | $100 \rho_{s0}$ |
-| $L_\parallel$ | $R$             |
-| $T$           | $T_{e0}$        |
-| $\phi$        | $e/T_{e0}$      |
-| $t$           | $R/c_{S0}$      |
+|                       | Normalised to   |
+| --------------------- | --------------- |
+| Charge                | $e$             |
+| Electric potential    | $e/T_{e0}$      |
+| Energy                | $T_{e0}$        |
+| Mass$^*$              | $m_i$           |
+| Number densities      | $n_0$           |
+| Perpendicular lengths | $100 \rho_{s0}$ |
+| Parallel lengths      | $R$             |
+| Time                  | $R/c_{S0}$      |
+
+$^*$ assumed; not stated in the paper.
 
 ## CG version
 
