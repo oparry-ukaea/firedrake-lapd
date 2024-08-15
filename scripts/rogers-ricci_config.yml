@@ -17,5 +17,3 @@ physical:
 time:
   num_steps: 1000
   output_freq: 10
-  start: 0.0
-  end: 10.0
