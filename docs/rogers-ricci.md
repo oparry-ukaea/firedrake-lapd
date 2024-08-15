@@ -42,17 +42,16 @@ where $r = \sqrt{x^2 + y^2}$
 
 ## Parameter Choices
 
-| Parameter     | Value               | Comment                                                                                                          |
-| ------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| $T_{e0}$      | 6 eV                |                                                                                                                  |
-| $L_z$         | 18 m                |                                                                                                                  |
-| $n_0$         | 2e18 m<sup>-3</sup> |                                                                                                                  |
-| $\nu$         | 0.03                |                                                                                                                  |
-| $m_i$         | 6.67e-27 kg         | N.B. This was inferred from the value of $c_{s0}$ quoted in the paper. Presumably they actually set $m_i=4 m_p$? |
-|               |                     |                                                                                                                  |
-| $\Omega_{ci}$ | $9.6e5$             |                                                                                                                  |
-| $\Lambda$     | 3                   | Couloumb Logarithm                                                                                               |
-| R             | 0.5 m               | Approx radius of the plasma column?                                                                              |
+| Parameter     | Value               | Comment                                                                                                         |
+| ------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| $T_{e0}$      | 6 eV                |                                                                                                                 |
+| $L_z$         | 18 m                |                                                                                                                 |
+| $n_0$         | 2e18 m<sup>-3</sup> |                                                                                                                 |
+| $\nu$         | 0.03                |                                                                                                                 |
+| $m_i$         | 6.67e-27 kg         | Inferred from the value of $c_{s0}$ quoted in the paper. Value is $\sim 4 m_p$, consistent with a Helium plasma |
+| $\Omega_{ci}$ | $9.6e5$             |                                                                                                                 |
+| $\Lambda$     | 3                   | Couloumb Logarithm                                                                                              |
+| R             | 0.5 m               | Approx radius of the plasma column?                                                                             |
 
 Derived values
 | Parameter          | Calculated as                   | Value                               | Comment                                           |
@@ -83,13 +82,13 @@ Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=
 | Charge                | $e$             |
 | Electric potential    | $e/T_{e0}$      |
 | Energy                | $T_{e0}$        |
-| Mass$^*$              | $m_i$           |
+| Mass<sup>*</sup>      | $m_i$           |
 | Number densities      | $n_0$           |
 | Perpendicular lengths | $100 \rho_{s0}$ |
 | Parallel lengths      | $R$             |
 | Time                  | $R/c_{S0}$      |
 
-$^*$ assumed; not stated in the paper.
+<sup>*</sup> assumed, not stated in the paper.
 
 ## CG version
 
