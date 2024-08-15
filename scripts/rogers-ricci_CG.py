@@ -101,7 +101,7 @@ def process_params(cfg):
     set_default_param(phys_cfg, "Lambda", 3.0)
     set_default_param(phys_cfg, "Lz", 18.0)
     set_default_param(phys_cfg, "m_i", 4 * constants["m_p"])
-    # Unless defaults are overridden, use mass-boosted electrons as per paper; m_e = 400 m_i = 100 m_p
+    # Unless defaults are overridden, use mass-boosted electrons as per paper; m_e = m_i/400 = m_p/100
     set_default_param(phys_cfg, "m_e", phys_cfg["m_i"] / 400.0)
     set_default_param(phys_cfg, "n_0", 2e18)
     set_default_param(phys_cfg, "nu", 0.03)
