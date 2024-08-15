@@ -36,13 +36,21 @@ def normalise(cfg):
     # Normalisation factors (T fac is in 1/eV... does it need to be in 1/K?)
     norm = dict(
         charge=1 / constants["e"],
-        mass=1 / phys["m_i"],
         n=1 / phys["n_0"],
         Ltrans=1 / phys["rho_s0"],
         Lpar=1 / phys["R"],
         T=1 / phys["T_e0"],
         phi=constants["e"] / phys["T_e0"],
         time=phys["c_s0"] / phys["R"],
+    )
+    # Derive mass normalisation from other quantities
+    norm["mass"] = (
+        norm["T"]
+        / constants["e"]
+        * norm["time"]
+        * norm["time"]
+        / norm["Ltrans"]
+        / norm["Ltrans"]
     )
     cfg["norm_factors"] = norm
 

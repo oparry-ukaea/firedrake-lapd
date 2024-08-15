@@ -82,13 +82,13 @@ Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=
 | Charge                | $e$             |
 | Electric potential    | $e/T_{e0}$      |
 | Energy                | $T_{e0}$        |
-| Mass<sup>*</sup>      | $m_i$           |
+| Mass<sup>*</sup>      | $1600 m_i$      |
 | Number densities      | $n_0$           |
 | Perpendicular lengths | $100 \rho_{s0}$ |
 | Parallel lengths      | $R$             |
 | Time                  | $R/c_{S0}$      |
 
-<sup>*</sup> assumed, not stated in the paper.
+<sup>*</sup> Not stated in the paper; derived from other normalisation factors.
 
 ## CG version
 
