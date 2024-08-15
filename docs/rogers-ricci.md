@@ -73,6 +73,11 @@ Bohm BCs for velocities at the end walls ($z = \pm L_z/2$): $u_i= \pm c_s$, $u_e
 
 Normalisations follow those in Rogers & Ricci, that is:
 
+#### Simulation time
+
+Based on Fig 4. of Rogers & Ricci, looks like total simulation time is $\sim 12$.
+Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0}$ before normalisation.
+
 |               | Normalised to   |
 | ------------- | --------------- |
 | $n$           | $n_0$           |

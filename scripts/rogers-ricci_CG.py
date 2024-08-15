@@ -80,8 +80,6 @@ def process_params(cfg):
     # Time-related defaults
     set_default_param(time_cfg, "order", 1)
     set_default_param(time_cfg, "output_freq", 10)
-    set_default_param(time_cfg, "t_init", 0.0)
-    set_default_param(time_cfg, "t_end", 10.0)
     set_default_param(time_cfg, "num_steps", 1000)
 
     # Add constants in SI-eV
@@ -156,6 +154,10 @@ def process_params(cfg):
     model_cfg["S0T"] = (
         model_cfg["S0T_fac"] * phys_cfg["T_e0"] * phys_cfg["c_s0"] / phys_cfg["R"]
     )
+
+    # By default run between t=0 and t=12*R/c_s0
+    set_default_param(time_cfg, "t_init", 0.0)
+    set_default_param(time_cfg, "t_end", 12 * phys_cfg["R"] / phys_cfg["c_s0"])
 
     # # Check quantities in cgs match paper (not quite...)
     # print(f"c_s0 = {100*phys_cfg['c_s0']:.1E} cm/s")
