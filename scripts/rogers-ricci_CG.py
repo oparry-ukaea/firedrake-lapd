@@ -35,6 +35,7 @@ def normalise(cfg):
 
     # Normalisation factors (T fac is in 1/eV... does it need to be in 1/K?)
     norm = dict(
+        mass=1 / phys["m_i"],
         n=1 / phys["n_0"],
         Ltrans=1 / phys["rho_s0"],
         Lpar=1 / phys["R"],
@@ -61,6 +62,8 @@ def normalise(cfg):
     # Store some other normalised quantities for use in the ICs and BCs
     cfg["normalised"] = dict(
         Ls=model["Ls"] * norm["Ltrans"],
+        m_e=phys["m_e"] * norm["mass"],
+        m_i=phys["m_i"] * norm["mass"],
         n_ref=phys["n_0"] * norm["n"],
         rs=model["rs"] * norm["Ltrans"],
         S0n=model["S0n"] * norm["n"] / norm["time"],
@@ -95,8 +98,9 @@ def process_params(cfg):
     #  N.B. R is plasma column radius, *not* the transverse size of the domain!
     set_default_param(phys_cfg, "Lambda", 3.0)
     set_default_param(phys_cfg, "Lz", 18.0)
-    # Paper claims m_i = 400 m_e, but can only match rho_s0 (and therefore domain size) with a value of ~3*m_p ...
     set_default_param(phys_cfg, "m_i", 4 * constants["m_p"])
+    # Unless defaults are overridden, use mass-boosted electrons as per paper; m_e = 400 m_i = 100 m_p
+    set_default_param(phys_cfg, "m_e", phys_cfg["m_i"] / 400.0)
     set_default_param(phys_cfg, "n_0", 2e18)
     set_default_param(phys_cfg, "nu", 0.03)
     set_default_param(phys_cfg, "omega_ci", 9.6e5)
@@ -316,7 +320,8 @@ def rogers_ricci():
         + (grad(n * T)[2] / n * ui_test) * dx
     )
 
-    m_e = cfg["constants"]["m_e"]
+    norm_cfg = cfg["normalised"]
+    m_e = norm_cfg["m_e"]
     charge_e = cfg["constants"]["e"]
     j_par = charge_e * n * (ui - ue)
     phys_cfg = cfg["physical"]
@@ -340,8 +345,7 @@ def rogers_ricci():
             - (T_src * T_test) * dx
         )
 
-    Omega_ci = phys_cfg["omega_ci"]
-    m_i = phys_cfg["m_i"]
+    m_i = norm_cfg["m_i"]
     w_terms = (
         Dt(w) * w_test * dx
         + (ui * grad(w)[2] * w_test) * dx
@@ -365,7 +369,6 @@ def rogers_ricci():
         par_bdy_lbl_upper = "top"
 
     # Set up Bohm BCs for ui,ue
-    norm_cfg = cfg["normalised"]
     cs = norm_cfg["u_ref"]
     ui_bcs = [
         DirichletBC(combined_space.sub(subspace_indices["ui"]), -cs, par_bdy_lbl_lower),

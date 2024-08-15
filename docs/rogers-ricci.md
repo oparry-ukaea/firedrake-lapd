@@ -49,20 +49,20 @@ where $r = \sqrt{x^2 + y^2}$
 | $n_0$         | 2e18 m<sup>-3</sup> |                                                                                                                  |
 | $\nu$         | 0.03                |                                                                                                                  |
 | $m_i$         | 6.67e-27 kg         | N.B. This was inferred from the value of $c_{s0}$ quoted in the paper. Presumably they actually set $m_i=4 m_p$? |
-|               |                     | Later on they claim $m_i= 400 m_e$. We'll ignore this as it doesn't seem to fit anything else...                 |
+|               |                     |                                                                                                                  |
 | $\Omega_{ci}$ | $9.6e5$             |                                                                                                                  |
 | $\Lambda$     | 3                   | Couloumb Logarithm                                                                                               |
 | R             | 0.5 m               | Approx radius of the plasma column?                                                                              |
 
 Derived values
-| Parameter          | Calculated as                   | Value                               | Comment                                                        |
-| ------------------ | ------------------------------- | ----------------------------------- | -------------------------------------------------------------- |
-| B                  | $\Omega_{ci} m_i q_E$           | 40 mT                               |                                                                |
-| $c_{s0}$           | $\sqrt{T_{e0}/m_i}$             | 1.2e4 ms<sup>-1</sup>               | (If $m_i=400 m_e$, this would be $\sim$ 5.1e4 ms<sup>-1</sup>) |
-| $\rho_{s0}$        | $c_{s0}/\Omega{ci}$             | 1.2e-2 m                            | Paper has 1.4e-2 m ... implies $m_i\sim 3 m_p$ !?              |
-| $S_{0n}$           | 0.03 $n_0 c_{s0}/R$             | 4.8e22 m<sup>-3</sup>s<sup>-1</sup> |                                                                |
-| $S_{0T}$           | 0.03 $T_{e0} c_{s0} / R$        | 4318.4 Ks<sup>-1</sup>              |                                                                |
-| $\sigma_\parallel$ | $e^2 n_0 R / (0.03 m_i c_{s0})$ | 10676.0                             |                                                                |
+| Parameter          | Calculated as                   | Value                               | Comment                                           |
+| ------------------ | ------------------------------- | ----------------------------------- | ------------------------------------------------- |
+| B                  | $\Omega_{ci} m_i q_E$           | 40 mT                               |                                                   |
+| $c_{s0}$           | $\sqrt{T_{e0}/m_i}$             | 1.2e4 ms<sup>-1</sup>               |                                                   |
+| $\rho_{s0}$        | $c_{s0}/\Omega{ci}$             | 1.2e-2 m                            | Paper has 1.4e-2 m ... implies $m_i\sim 3 m_p$ !? |
+| $S_{0n}$           | 0.03 $n_0 c_{s0}/R$             | 4.8e22 m<sup>-3</sup>s<sup>-1</sup> |                                                   |
+| $S_{0T}$           | 0.03 $T_{e0} c_{s0} / R$        | 4318.4 Ks<sup>-1</sup>              |                                                   |
+| $\sigma_\parallel$ | $e^2 n_0 R / (0.03 m_i c_{s0})$ | 10676.0                             |                                                   |
 
 ### Other implementation details
 
