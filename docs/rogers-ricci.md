@@ -107,7 +107,7 @@ Normalisations follow those in Rogers & Ricci, that is:
 #### Simulation time
 
 Based on Fig 4. of Rogers & Ricci, looks like total simulation time is $\sim 12$.
-Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0}$ = $500~\mu$s before normalisation.
+Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0} = 500 \mu{\rm s}$ before normalisation.
 
 ## CG version
 
