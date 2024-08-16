@@ -68,6 +68,25 @@ Derived values
 #### Boundary conditions
 Bohm BCs for velocities at the end walls ($z = \pm L_z/2$): $u_i= \pm c_s$, $u_e=\pm exp(\Lambda - e\phi/T_e)$. All other BCs are homogeneous Neumann.
 
+
+#### Domain and mesh
+
+The mesh is a cuboid with the origin at the centre and dimensions
+
+|                    | Determined by params           | SI    | Normalised |
+| ------------------ | ------------------------------ | ----- | ---------- |
+| Parallel size      | $L_z$                          | 18 m  | 36         |
+| Perpendicular size | $\sqrt{T_{e0}/m_i}/\Omega{ci}$ | 1.2 m | 100        |
+
+By default, there are 64x64x16 tetrahedral (cuboidal), giving element sizes of
+
+|                    |          | Normalised |
+| ------------------ | -------- | ---------- |
+| Parallel size      | 1.125 m  | 2.25       |
+| Perpendicular size | 1.875 cm | 1.56       |
+
+(Default res is substantially lower than that used in the finite difference model, which has 1024x1024x64 elements.)
+
 #### Normalisation
 
 Normalisations follow those in Rogers & Ricci, that is:
@@ -88,7 +107,7 @@ Normalisations follow those in Rogers & Ricci, that is:
 #### Simulation time
 
 Based on Fig 4. of Rogers & Ricci, looks like total simulation time is $\sim 12$.
-Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0}$ before normalisation.
+Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0}$ = $500~\mu$s before normalisation.
 
 ## CG version
 
