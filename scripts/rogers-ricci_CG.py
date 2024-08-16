@@ -33,7 +33,7 @@ def normalise(cfg):
     model = cfg["model"]
     phys = cfg["physical"]
 
-    # Normalisation factors (T fac is in 1/eV... does it need to be in 1/K?)
+    # Normalisation factors
     norm = dict(
         charge=1 / constants["e"],
         n=1 / phys["n_0"],
@@ -74,7 +74,7 @@ def normalise(cfg):
         Ls=model["Ls"] * norm["Ltrans"],
         m_e=phys["m_e"] * norm["mass"],
         m_i=phys["m_i"] * norm["mass"],
-        n_ref=phys["n_0"] * norm["n"],
+        n_init=model["n_init"] * norm["n"],
         omega_ci=phys["omega_ci"] / norm["time"],
         rs=model["rs"] * norm["Ltrans"],
         sigma_par=phys["sigma_par"]
@@ -85,7 +85,7 @@ def normalise(cfg):
         / norm["mass"],
         S0n=model["S0n"] * norm["n"] / norm["time"],
         S0T=model["S0T"] * norm["T"] / norm["time"],
-        T_ref=phys["T_e0"] * norm["T"],
+        T_init=model["T_init"] * norm["T"],
         u_ref=phys["c_s0"] * norm["Lpar"] / norm["time"],
     )
 
@@ -110,6 +110,8 @@ def process_params(cfg):
     model_cfg = cfg["model"]
     set_default_param(model_cfg, "is_isothermal", False)
     set_default_param(model_cfg, "coulomb_fac_enabled", False)
+    set_default_param(model_cfg, "n_init", 1e18)
+    set_default_param(model_cfg, "T_init", 6.0)
 
     # Set phys defaults
     phys_cfg = cfg["physical"]
@@ -123,6 +125,7 @@ def process_params(cfg):
     set_default_param(phys_cfg, "nu", 0.03)
     set_default_param(phys_cfg, "omega_ci", 9.6e5)
     set_default_param(phys_cfg, "R", 0.5)
+    set_default_param(phys_cfg, "T_e0", 6.0)
 
     # Set mesh defaults
     mesh_cfg = cfg["mesh"]
@@ -283,7 +286,7 @@ def rogers_ricci():
         combined_space = n_space * ui_space * ue_space * w_space
         time_evo_funcs = Function(combined_space)
         n, ui, ue, w = split(time_evo_funcs)
-        T = Constant(cfg["normalised"]["T_ref"], name="T")
+        T = Constant(cfg["normalised"]["T_init"], name="T")
         subspace_indices = dict(n=0, ui=1, ue=2, w=3)
     else:
         combined_space = n_space * ui_space * ue_space * T_space * w_space
@@ -417,7 +420,7 @@ def rogers_ricci():
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
 
     # Initial conditions
-    time_evo_funcs.sub(subspace_indices["n"]).interpolate(norm_cfg["n_ref"])
+    time_evo_funcs.sub(subspace_indices["n"]).interpolate(norm_cfg["n_init"])
     # Ion and electron velocities are initially linear in z
     time_evo_funcs.sub(subspace_indices["ui"]).interpolate(
         2 * norm_cfg["u_ref"] * z / mesh_cfg["Lz"]
@@ -426,7 +429,7 @@ def rogers_ricci():
         2 * norm_cfg["u_ref"] * z / mesh_cfg["Lz"]
     )
     if not is_isothermal:
-        time_evo_funcs.sub(subspace_indices["T"]).interpolate(norm_cfg["T_ref"])
+        time_evo_funcs.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
     # Vorticity = 0
     time_evo_funcs.sub(subspace_indices["w"]).interpolate(0)
 
