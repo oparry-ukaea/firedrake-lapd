@@ -230,20 +230,9 @@ def phi_solve_setup(phi_space, vorticity, mesh_cfg):
         "pc_factor_mat_solver_type": "mumps",
     }
 
-    return Lphi == Rphi, phi_BCs, solver_params
+    nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
 
-
-# this is intended to be direct solver - but now changed to GMRES
-linparams = {
-    "mat_type": "aij",
-    "snes_type": "ksponly",
-    "ksp_type": "gmres",
-    "pc_type": "lu",
-    "mat_type": "aij",
-    "pc_factor_mat_solver_type": "mumps",
-}
-
-nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
+    return Lphi == Rphi, phi_BCs, solver_params, nullspace
 
 
 def src_term(fspace, x, y, var, cfg):
@@ -323,7 +312,9 @@ def rogers_ricci():
     # else:
     #     outfile.write(n_src, T_src)
 
-    phi_eqn, phi_bcs, phi_solve_params = phi_solve_setup(phi_space, w, cfg["mesh"])
+    phi_eqn, phi_bcs, phi_solve_params, nullspace = phi_solve_setup(
+        phi_space, w, cfg["mesh"]
+    )
 
     # Assemble variational problem
     if is_isothermal:
