@@ -84,7 +84,7 @@ def normalise(cfg):
         * norm["charge"]
         / norm["mass"],
         S0n=model["S0n"] * norm["n"] / norm["time"],
-        s0T=model["S0T"] * norm["T"] / norm["time"],
+        S0T=model["S0T"] * norm["T"] / norm["time"],
         T_ref=phys["T_e0"] * norm["T"],
         u_ref=phys["c_s0"] * norm["Lpar"] / norm["time"],
     )
