@@ -1,5 +1,6 @@
 from common import read_yaml_config, set_default_param, set_up_mesh
 from firedrake import (
+    as_vector,
     Constant,
     DirichletBC,
     dx,
@@ -7,6 +8,7 @@ from firedrake import (
     Function,
     FunctionSpace,
     grad,
+    inner,
     PETSc,
     solve,
     SpatialCoordinate,
@@ -24,6 +26,20 @@ import math
 import os.path
 from pyop2.mpi import COMM_WORLD
 import time
+
+
+def su_term(h, tri, test, vel_long, vel_eps=0.001):
+    vel = as_vector([0, 0, vel_long])
+    return (
+        0.5
+        * h
+        * (
+            inner(vel, grad(test))
+            * inner(vel, grad(tri))
+            / (inner(vel, vel) + vel_eps * vel_eps)
+        )
+        * dx
+    )
 
 
 def normalise(cfg):
@@ -110,6 +126,7 @@ def process_params(cfg):
     model_cfg = cfg["model"]
     set_default_param(model_cfg, "is_isothermal", False)
     set_default_param(model_cfg, "coulomb_fac_enabled", False)
+    set_default_param(model_cfg, "do_streamline_upwinding", True)
     set_default_param(model_cfg, "n_init", 1e18)
     set_default_param(model_cfg, "T_init", 6.0)
 
@@ -321,19 +338,30 @@ def rogers_ricci():
         n_test, ui_test, ue_test, w_test = TestFunctions(combined_space)
     else:
         n_test, ui_test, ue_test, T_test, w_test = TestFunctions(combined_space)
+
+    # h factor for streamline-upwinding
+    norm_cfg = cfg["normalised"]
+    do_SU = cfg["model"]["do_streamline_upwinding"]
+    if do_SU:
+        h_long = norm_cfg["dz"]
+
     # fmt: off
     n_terms = (
         Dt(n) * n_test * dx
         + (grad(n * ue)[2] * n_test) * dx
         - (n_src * n_test) * dx
     )
+    if do_SU: 
+        n_terms += su_term(h_long, n, n_test, ue)
+
     ui_terms = (
         Dt(ui) * ui_test * dx
         + (ui * grad(ui)[2] * ui_test) * dx
         + (grad(n * T)[2] / n * ui_test) * dx
     )
+    if do_SU: 
+        ui_terms += su_term(h_long, ui, ui_test, ui)
 
-    norm_cfg = cfg["normalised"]
     m_e = norm_cfg["m_e"]
     charge_e = norm_cfg["e"]
     j_par = charge_e * n * (ui - ue)
@@ -345,6 +373,9 @@ def rogers_ricci():
         - (charge_e * grad(phi)[2] * ue_test) * dx
         - (charge_e * j_par / sigma_par * ue_test) * dx
     )
+    if do_SU: 
+        ue_terms += su_term(h_long, m_e*ue, ue_test, ue)
+
     if is_isothermal:
         T_terms = 0
     else:
@@ -356,6 +387,8 @@ def rogers_ricci():
             + (ue * grad(T)[2] * T_test) * dx
             - (T_src * T_test) * dx
         )
+        if do_SU: 
+            T_terms += su_term(h_long, T, T_test, ue)
 
     Omega_ci = norm_cfg["omega_ci"]
     m_i = norm_cfg["m_i"]
@@ -364,6 +397,9 @@ def rogers_ricci():
         + (ui * grad(w)[2] * w_test) * dx
         - (m_i * Omega_ci * Omega_ci / charge_e / charge_e / n * grad(j_par)[2] * w_test) * dx
     )
+    if do_SU: 
+        w_terms += su_term(h_long, w, w_test, ui)
+
     # fmt: on
     F = n_terms + ui_terms + ue_terms + T_terms + w_terms
 
