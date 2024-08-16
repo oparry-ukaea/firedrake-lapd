@@ -65,7 +65,7 @@ def normalise(cfg):
 
     # Time norm
     time = cfg["time"]
-    for key in ["t_init", "t_end"]:
+    for key in ["t_start", "t_end"]:
         time[key] = time[key] * norm["time"]
 
     # Store some other normalised quantities for use in the ICs and BCs
@@ -178,7 +178,7 @@ def process_params(cfg):
     )
 
     # By default run between t=0 and t=12*R/c_s0
-    set_default_param(time_cfg, "t_init", 0.0)
+    set_default_param(time_cfg, "t_start", 0.0)
     set_default_param(time_cfg, "t_end", 12 * phys_cfg["R"] / phys_cfg["c_s0"])
 
     # # Check quantities in cgs match paper (not quite...)
@@ -373,7 +373,7 @@ def rogers_ricci():
     F = n_terms + ui_terms + ue_terms + T_terms + w_terms
 
     time_cfg = cfg["time"]
-    t = Constant(time_cfg["t_init"])
+    t = Constant(time_cfg["t_start"])
     t_end = time_cfg["t_end"]
     dt = Constant(time_cfg["t_end"] / time_cfg["num_steps"])
 
