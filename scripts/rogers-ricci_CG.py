@@ -437,7 +437,7 @@ def rogers_ricci():
     while float(t) < float(t_end):
         it_start = time.time()
         if (float(t) + float(dt)) > t_end:
-            dt.assign(T - float(t))
+            dt.assign(t_end - float(t))
             PETSc.Sys.Print(f"  Last dt = {dt}")
         solve(phi_eqn, phi, nullspace=nullspace, solver_parameters=phi_solve_params, bcs=phi_bcs)  # fmt: skip
 
