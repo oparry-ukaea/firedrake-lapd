@@ -206,7 +206,7 @@ def phi_solve_setup(phi_space, vorticity, mesh_cfg):
     Lphi = (
         grad(phi_tri)[0] * grad(phi_test)[0] + grad(phi_tri)[1] * grad(phi_test)[1]
     ) * dx
-    Rphi = -vorticity * phi_test * dx
+    Rphi = vorticity * phi_test * dx
 
     # D0 on all boundaries
     if mesh_cfg["type"] == "cuboid":
