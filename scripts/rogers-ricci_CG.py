@@ -196,6 +196,7 @@ def nl_solve_setup(F, t, dt, n_ui_ue_T_w, bcs, cfg):
         "snes_monitor": None,
         "snes_max_it": 100,
         "snes_linesearch_type": "l2",
+        "snes_atol": 1e-8,
         "ksp_type": "preonly",
         "pc_type": "lu",
         "mat_type": "aij",
