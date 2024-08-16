@@ -14,18 +14,15 @@ def read_yaml_config(fname, process_derived=None, normalise=None, verbose=True):
     if process_derived is not None:
         process_derived(cfg)
 
-    if verbose:
-        # Pretty-print options
-        pp_str = pprint.pformat(cfg, depth=2)
-        PETSc.Sys.Print(f"Options read from {fpath}: ")
-        PETSc.Sys.Print(pp_str)
-
     if normalise is not None:
         normalise(cfg)
-        if verbose:
-            pp_str = pprint.pformat(cfg, depth=2)
-            PETSc.Sys.Print(f"Normalised config: ")
-            PETSc.Sys.Print(pp_str)
+
+    if verbose:
+        # Pretty-print all config options
+        pp_str = pprint.pformat(cfg, depth=2)
+        PETSc.Sys.Print(f"Options read or derived from {fpath}: ")
+        PETSc.Sys.Print(pp_str)
+
     return cfg
 
 
