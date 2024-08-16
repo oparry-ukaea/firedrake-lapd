@@ -42,6 +42,10 @@ def su_term(h, tri, test, vel_long, vel_eps=0.001):
     )
 
 
+def poisson_bracket(f, phi, c_over_B):
+    return Constant(c_over_B) * (phi.dx(0) * f.dx(1) - phi.dx(1) * f.dx(0))
+
+
 def normalise(cfg):
     # Shorter references to various config sections for the sake of brevity
     constants = cfg["constants"]
@@ -86,6 +90,14 @@ def normalise(cfg):
 
     # Store some other normalised quantities for use in the ICs and BCs
     cfg["normalised"] = dict(
+        c_over_B=1
+        * constants["e"]
+        * norm["charge"]
+        * norm["time"]
+        / phys["omega_ci"]
+        / phys["m_i"]
+        / norm["mass"],
+        dz=mesh["Lz"] / mesh["nz"],
         e=constants["e"] * norm["charge"],
         Ls=model["Ls"] * norm["Ltrans"],
         m_e=phys["m_e"] * norm["mass"],
@@ -119,7 +131,9 @@ def process_params(cfg):
     set_default_param(time_cfg, "num_steps", 1000)
 
     # Add constants in SI-eV
-    constants = dict(e=1.602e-19, kB=8.6173303e-5, m_e=9.1093837e-31, m_p=1.67e-27)
+    constants = dict(
+        c=3e8, e=1.602e-19, kB=8.6173303e-5, m_e=9.1093837e-31, m_p=1.67e-27
+    )
     cfg["constants"] = constants
 
     # Set model defaults
@@ -349,6 +363,7 @@ def rogers_ricci():
     n_terms = (
         Dt(n) * n_test * dx
         + (grad(n * ue)[2] * n_test) * dx
+        - poisson_bracket(n, phi, norm_cfg["c_over_B"]) * n_test * dx
         - (n_src * n_test) * dx
     )
     if do_SU: 
@@ -356,6 +371,7 @@ def rogers_ricci():
 
     ui_terms = (
         Dt(ui) * ui_test * dx
+        - poisson_bracket(ui, phi, norm_cfg["c_over_B"]) * ui_test * dx
         + (ui * grad(ui)[2] * ui_test) * dx
         + (grad(n * T)[2] / n * ui_test) * dx
     )
@@ -368,6 +384,7 @@ def rogers_ricci():
     sigma_par = norm_cfg["sigma_par"]
     ue_terms = (
         m_e * Dt(ue) * ue_test * dx
+        - poisson_bracket(ue, phi, norm_cfg["c_over_B"]) * ue_test * dx
         + (m_e * ue * grad(ue)[2] * ue_test) * dx
         + (T / n * grad(n)[2] * ue_test) * dx
         - (charge_e * grad(phi)[2] * ue_test) * dx
@@ -382,6 +399,7 @@ def rogers_ricci():
         ue_terms += (1.71 * grad(T)[2] * ue_test) * dx
         T_terms = (
             Dt(T) * T_test * dx
+            - poisson_bracket(T, phi, norm_cfg["c_over_B"]) * T_test * dx
             - (2.0 / 3 * T / charge_e / n * 0.71 * grad(j_par)[2] * T_test) * dx
             + (2.0 / 3 * T * grad(ue)[2] * T_test) * dx
             + (ue * grad(T)[2] * T_test) * dx
@@ -394,6 +412,7 @@ def rogers_ricci():
     m_i = norm_cfg["m_i"]
     w_terms = (
         Dt(w) * w_test * dx
+        - poisson_bracket(w, phi, norm_cfg["c_over_B"]) * w_test * dx
         + (ui * grad(w)[2] * w_test) * dx
         - (m_i * Omega_ci * Omega_ci / charge_e / charge_e / n * grad(j_par)[2] * w_test) * dx
     )
