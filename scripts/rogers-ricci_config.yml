@@ -4,6 +4,7 @@ mesh:
   ny: 64
   nz: 16
 model:
+  coulomb_fac_enabled: False
   is_isothermal: True
   S0n_fac: 0.03
   S0T_fac: 0.03

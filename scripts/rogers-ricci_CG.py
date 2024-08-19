@@ -109,6 +109,7 @@ def process_params(cfg):
     # Set model defaults
     model_cfg = cfg["model"]
     set_default_param(model_cfg, "is_isothermal", False)
+    set_default_param(model_cfg, "coulomb_fac_enabled", False)
 
     # Set phys defaults
     phys_cfg = cfg["physical"]
@@ -393,15 +394,19 @@ def rogers_ricci():
     ]
     # Excluding phi, T dependence from ue BCs for now
     coulomb_log = cfg["physical"]["Lambda"]
+    if cfg["model"]["coulomb_fac_enabled"]:
+        coulomb_fac = exp(coulomb_log - phi / T)
+    else:
+        coulomb_fac = 1
     ue_bcs = [
         DirichletBC(
             combined_space.sub(subspace_indices["ue"]),
-            -cs,  # * exp(coulomb_log - phi / T),
+            -cs * coulomb_fac,
             par_bdy_lbl_lower,
         ),
         DirichletBC(
             combined_space.sub(subspace_indices["ue"]),
-            cs,  # * exp(coulomb_log - phi / T),
+            cs * coulomb_fac,
             par_bdy_lbl_upper,
         ),
     ]
