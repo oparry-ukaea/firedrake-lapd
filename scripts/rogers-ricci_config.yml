@@ -1,7 +1,7 @@
 mesh:
   type: cuboid
-  nx: 64
-  ny: 64
+  nx: 32
+  ny: 32
   nz: 16
 model:
   coulomb_fac_enabled: False
