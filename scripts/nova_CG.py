@@ -5,7 +5,27 @@
 # has attempt at correct units and scalings
 # aspect ratio is like actual device but the beam might be wider than in actual device
 
-from firedrake import *
+from firedrake import (
+    CheckpointFile,
+    Constant,
+    as_vector,
+    DirichletBC,
+    div,
+    dx,
+    exp,
+    Function,
+    FunctionSpace,
+    grad,
+    inner,
+    solve,
+    SpatialCoordinate,
+    split,
+    TestFunction,
+    TestFunctions,
+    TrialFunction,
+    VectorSpaceBasis,
+    VTKFile,
+)
 import math
 from irksome import Dt, GaussLegendre, MeshConstant, TimeStepper
 import time
