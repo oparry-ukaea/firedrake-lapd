@@ -27,8 +27,8 @@ from firedrake import (
     VectorSpaceBasis,
     VTKFile,
 )
-import math
-from irksome import Dt, GaussLegendre, MeshConstant, TimeStepper
+
+from irksome import Dt, GaussLegendre, TimeStepper
 from pyop2.mpi import COMM_WORLD
 import time
 
@@ -218,7 +218,7 @@ linparams = {
     "pc_factor_mat_solver_type": "mumps",
 }
 
-nullspace = VectorSpaceBasis(constant=True,comm=COMM_WORLD)
+nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
 
 # end of stuff for elliptic solve
 
