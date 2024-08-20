@@ -299,6 +299,9 @@ while float(t) < float(T):
     PETSc.Sys.Print(f"t = {float(t):.5g}")
     step = step + 1
 
+# Write the last output
+outfile.write(nuw.sub(0), nuw.sub(1), nuw.sub(2), phi_s, p)
+
 end = time.time()
 wall_time = end - start
 
