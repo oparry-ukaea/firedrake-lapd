@@ -47,23 +47,46 @@ output_freq = int(timeres / 200)
 chk_freq = 10  # Write one checkfile for every [chk_freq] output files
 
 
-# transverse mesh resolution (need to make sure this is consistent with chk file if restarting from a checkpoint)
-meshres = 64
+# Mesh resolution
+# These values are also used to name the mesh in checkpoint files, so an error will be generated if restarting with inconsistent values)
+meshres_trans = 32
+meshres_par = 16
 # =============================================================================
 
+h_tran = 2.0 / meshres_trans
+h_long = 20.0 / meshres_trans
 
-h_tran = 2.0 / meshres
-h_long = 20.0 / meshres
+# Set up output file
+outfile = VTKFile(f"{output_base}.pvd")
 
 # Set up/load mesh, set up function spaces, set up/load functions
+mesh_name = f"{meshres_par}x{meshres_trans}x{meshres_trans}_cuboid"
 if restart_chknum is None:
-    mesh = BoxMesh(16, meshres, meshres, 20.0, 2.0, 2.0, hexahedral=True)
+    mesh = BoxMesh(
+        meshres_par,
+        meshres_trans,
+        meshres_trans,
+        20.0,
+        2.0,
+        2.0,
+        hexahedral=True,
+        name=mesh_name,
+    )
 else:
     restart_fname = f"{output_base}_chk_{restart_chknum}.h5"
     with CheckpointFile(restart_fname, "r") as infile:
-        mesh = infile.load_mesh(f"{output_base}_mesh")
+        mesh = infile.load_mesh(mesh_name)
         nuw = infile.load_function(mesh, "nuw")
         phi_s = infile.load_function(mesh, "phi_s")
+
+        # Restore time and step number
+        step = infile.get_attr("/", "step")
+        tflt = infile.get_attr("/", "t")
+        t = Constant(tflt)
+        # Restore outfile counter
+        output_num = infile.get_attr("/", "output_num")
+        for ii in range(output_num):
+            next(outfile.counter)
 
 V1 = FunctionSpace(mesh, "CG", 1)  # n
 V2 = FunctionSpace(mesh, "CG", 1)  # u - velocity x-cpt
@@ -80,8 +103,11 @@ if restart_chknum is None:
     # background init density
     nuw.sub(0).interpolate(1.0e-4)
 
-# Initial time and timestep
-t = Constant(0.0)
+    # Initial time and step number
+    t = Constant(0.0)
+    step = 0
+
+# Set timestep
 dt = Constant(T / timeres)
 
 # parameters for irksome
@@ -233,10 +259,8 @@ nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
 
 # end of stuff for elliptic solve
 
-outfile = VTKFile(f"{output_base}.pvd")
-
 PETSc.Sys.Print("\nTimestep loop:")
-step = 0
+
 while float(t) < float(T):
     it_start = time.time()
     if (float(t) + float(dt)) >= T:
@@ -262,8 +286,11 @@ while float(t) < float(T):
                 f"{output_base}_chk_{output_num}.h5", "w"
             ) as chk_outfile:
                 chk_outfile.save_mesh(mesh)
-                chk_outfile.save_function(nuw)
-                chk_outfile.save_function(phi_s)
+                chk_outfile.save_function(nuw, name="nuw")
+                chk_outfile.save_function(phi_s, name="phi_s")
+                chk_outfile.set_attr("/", "output_num", output_num)
+                chk_outfile.set_attr("/", "step", step)
+                chk_outfile.set_attr("/", "t", float(t))
     stepper.advance()
     t.assign(float(t) + float(dt))
     it_end = time.time()
