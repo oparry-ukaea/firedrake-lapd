@@ -18,6 +18,7 @@ from firedrake import (
     FunctionSpace,
     grad,
     inner,
+    PETSc,
     solve,
     SpatialCoordinate,
     split,
@@ -31,6 +32,8 @@ from firedrake import (
 from irksome import Dt, GaussLegendre, TimeStepper
 from pyop2.mpi import COMM_WORLD
 import time
+
+start = time.time()
 
 # ================================== Options ==================================
 output_base = "lapd_nova"
@@ -224,11 +227,10 @@ nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
 
 outfile = VTKFile(f"{output_base}.pvd")
 
-start = time.time()
-
-cnt = 0
-
+PETSc.Sys.Print("\nTimestep loop:")
+step = 0
 while float(t) < float(T):
+    it_start = time.time()
     if (float(t) + float(dt)) >= T:
         dt.assign(T - float(t))
 
@@ -243,9 +245,9 @@ while float(t) < float(T):
     p.interpolate(nuw.sub(0) * nuw.sub(1))
     p.rename("momentum density")
     phi_s.rename("potential")
-    if cnt % output_freq == 0:
+    if step % output_freq == 0:
         outfile.write(nuw.sub(0), nuw.sub(1), nuw.sub(2), phi_s, p)
-        output_num = cnt / output_freq
+        output_num = int(step / output_freq)
         if output_num % chk_freq == 0:
             # Write HDF5 checkpoint
             with CheckpointFile(
@@ -258,13 +260,15 @@ while float(t) < float(T):
     print(t)
     stepper.advance()
     t.assign(float(t) + float(dt))
-    print(float(t), float(dt))
-    print("done step\n")
-    cnt = cnt + 1
+    it_end = time.time()
+    it_wall_time = it_end - it_start
+    PETSc.Sys.Print(f"  Iter {step+1:d}/{timeres:d} took {it_wall_time:.5g} s")
+    PETSc.Sys.Print(f"t = {float(t):.5g}")
+    step = step + 1
 
 end = time.time()
 wall_time = end - start
 
-print("done.")
-print("\n")
-print("wall time:" + str(wall_time) + "\n")
+PETSc.Sys.Print("done.")
+PETSc.Sys.Print("\n")
+PETSc.Sys.Print("wall time:" + str(wall_time) + "\n")
