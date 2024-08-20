@@ -42,6 +42,7 @@ restart_chknum = None  # Set to an integer to restart from checkpoint file
 # time parameters (takes about 50 time units to get longitudinal to equilibrium)
 T = 100.0
 timeres = 2000
+su_boost = 4.0
 output_freq = int(timeres / 200)
 chk_freq = 10  # Write one checkfile for every [chk_freq] output files
 
@@ -121,7 +122,8 @@ F = (
     v1 * Dt(n) * dx
     + v1 * div(n * adv_vel) * dx
     - v1 * nstarFunc * dx
-    + 0.5
+    + su_boost
+    * 0.5
     * h_long
     * (
         inner(long_vel, grad(v1))
@@ -133,7 +135,8 @@ F = (
     + v2 * nstarFunc * u * dx
     + v2 * n * inner(grad(u), adv_vel) * dx
     + v2 * grad(n)[0] * dx
-    + 0.5
+    + su_boost
+    * 0.5
     * h_long
     * (
         inner(long_vel, grad(v2))
@@ -144,7 +147,8 @@ F = (
     + v3 * Dt(w) * dx
     + v3 * div(w * adv_vel) * dx
     + 0.005 * v3 * grad(n * u)[0] * dx
-    + 0.5
+    + su_boost
+    * 0.5
     * h_long
     * (
         inner(long_vel, grad(v3))
@@ -152,7 +156,8 @@ F = (
         / (inner(long_vel, long_vel) + v_eps * v_eps)
     )
     * dx
-    + 0.5
+    + su_boost
+    * 0.5
     * h_tran
     * (
         inner(drif_vel, grad(v1))
@@ -160,7 +165,8 @@ F = (
         / (inner(drif_vel, drif_vel) + v_eps * v_eps * u_fac * u_fac)
     )
     * dx
-    + 0.5
+    + su_boost
+    * 0.5
     * h_tran
     * (
         inner(drif_vel, grad(v2))
@@ -168,7 +174,8 @@ F = (
         / (inner(drif_vel, drif_vel) + v_eps * v_eps * u_fac * u_fac)
     )
     * dx
-    + 0.5
+    + su_boost
+    * 0.5
     * h_tran
     * (
         inner(drif_vel, grad(v3))
