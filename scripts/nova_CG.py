@@ -37,13 +37,14 @@ start = time.time()
 
 # ================================== Options ==================================
 output_base = "lapd_nova"
-output_freq = 10
-chk_freq = 10  # Write one checkfile for every [chk_freq] output files
 restart_chknum = None  # Set to an integer to restart from checkpoint file
 
 # time parameters (takes about 50 time units to get longitudinal to equilibrium)
 T = 100.0
 timeres = 2000
+output_freq = int(timeres / 200)
+chk_freq = 10  # Write one checkfile for every [chk_freq] output files
+
 
 # transverse mesh resolution (need to make sure this is consistent with chk file if restarting from a checkpoint)
 meshres = 32
@@ -256,8 +257,6 @@ while float(t) < float(T):
                 chk_outfile.save_mesh(mesh)
                 chk_outfile.save_function(nuw)
                 chk_outfile.save_function(phi_s)
-    print("t =")
-    print(t)
     stepper.advance()
     t.assign(float(t) + float(dt))
     it_end = time.time()
