@@ -116,22 +116,46 @@ def BoxMesh(
             ztol = Lz / (2 * nz)
             for face in boundary_faces:
                 face_coords = plex.vecGetClosure(coord_sec, coords, face)
-                if all([abs(face_coords[0 + cdim * i]- lower[0])  < xtol for i in range(nvert)]):
+                if all(
+                    [
+                        abs(face_coords[0 + cdim * i] - lower[0]) < xtol
+                        for i in range(nvert)
+                    ]
+                ):
                     plex.setLabelValue(dmcommon.FACE_SETS_LABEL, face, 1)
                 if all(
-                    [abs(face_coords[0 + cdim * i] - upper[0]) < xtol for i in range(nvert)]
+                    [
+                        abs(face_coords[0 + cdim * i] - upper[0]) < xtol
+                        for i in range(nvert)
+                    ]
                 ):
                     plex.setLabelValue(dmcommon.FACE_SETS_LABEL, face, 2)
-                if all([abs(face_coords[1 + cdim * i] - lower[1]) < ytol for i in range(nvert)]):
+                if all(
+                    [
+                        abs(face_coords[1 + cdim * i] - lower[1]) < ytol
+                        for i in range(nvert)
+                    ]
+                ):
                     plex.setLabelValue(dmcommon.FACE_SETS_LABEL, face, 3)
                 if all(
-                    [abs(face_coords[1 + cdim * i] - upper[1]) < ytol for i in range(nvert)]
+                    [
+                        abs(face_coords[1 + cdim * i] - upper[1]) < ytol
+                        for i in range(nvert)
+                    ]
                 ):
                     plex.setLabelValue(dmcommon.FACE_SETS_LABEL, face, 4)
-                if all([abs(face_coords[2 + cdim * i]- lower[2]) < ztol for i in range(nvert)]):
+                if all(
+                    [
+                        abs(face_coords[2 + cdim * i] - lower[2]) < ztol
+                        for i in range(nvert)
+                    ]
+                ):
                     plex.setLabelValue(dmcommon.FACE_SETS_LABEL, face, 5)
                 if all(
-                    [abs(face_coords[2 + cdim * i] - upper[2]) < ztol for i in range(nvert)]
+                    [
+                        abs(face_coords[2 + cdim * i] - upper[2]) < ztol
+                        for i in range(nvert)
+                    ]
                 ):
                     plex.setLabelValue(dmcommon.FACE_SETS_LABEL, face, 6)
         plex.removeLabel("boundary_faces")
