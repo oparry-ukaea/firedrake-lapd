@@ -1,6 +1,6 @@
 from .io import read_yaml_config, set_default_param
 import math
-
+from Firedrake import Function, sqrt, tanh
 
 def _normalise(cfg):
     # Shorter references to various config sections for the sake of brevity
@@ -182,3 +182,17 @@ def read_rr_config(fname. is_2D=False):
     return read_yaml_config(
         fname, process_derived=_process_params, normalise=_normalise
     )
+
+def rr_src_term(fspace, x, y, var, cfg):
+    """
+    Assemble a source term function on space [fspace] for variable [var],
+    fetching corresponding scaling params from [cfg] and evaluating a
+    tanh function over mesh coords [x],[y]
+    """
+    r = sqrt(x * x + y * y)
+    fac = cfg["normalised"][f"S0{var}"]
+    Ls = cfg["normalised"]["Ls"]
+    rs = cfg["normalised"]["rs"]
+    func = Function(fspace, name=f"{var}_src")
+    func.interpolate(fac * (1 - tanh((r - rs) / Ls)) / 2)
+    return func

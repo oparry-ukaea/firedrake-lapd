@@ -1,4 +1,4 @@
-from common import read_rr_config, set_up_mesh
+from common import read_rr_config, rr_src_term, set_up_mesh
 from firedrake import (
     as_vector,
     Constant,
@@ -13,8 +13,6 @@ from firedrake import (
     solve,
     SpatialCoordinate,
     split,
-    sqrt,
-    tanh,
     TestFunction,
     TestFunctions,
     TrialFunction,
@@ -90,21 +88,6 @@ def phi_solve_setup(phi_space, vorticity, mesh_cfg):
     return Lphi == Rphi, phi_BCs, solver_params, nullspace
 
 
-def src_term(fspace, x, y, var, cfg):
-    """
-    Assemble a source term function on space [fspace] for variable [var],
-    fetching corresponding scaling params from [cfg] and evaluating a
-    tanh function over mesh coords [x],[y]
-    """
-    r = sqrt(x * x + y * y)
-    fac = cfg["normalised"][f"S0{var}"]
-    Ls = cfg["normalised"]["Ls"]
-    rs = cfg["normalised"]["rs"]
-    func = Function(fspace, name=f"{var}_src")
-    func.interpolate(fac * (1 - tanh((r - rs) / Ls)) / 2)
-    return func
-
-
 def rogers_ricci():
     start = time.time()
 
@@ -154,9 +137,9 @@ def rogers_ricci():
     output_funcs.append(phi)
 
     # Source functions
-    n_src = src_term(n_space, x, y, "n", cfg)
+    n_src = rr_src_term(n_space, x, y, "n", cfg)
     if not is_isothermal:
-        T_src = src_term(T_space, x, y, "T", cfg)
+        T_src = rr_src_term(T_space, x, y, "T", cfg)
 
     # # Check the source functions look ok
     # outfile = VTKFile(f"src_funcs.pvd")
