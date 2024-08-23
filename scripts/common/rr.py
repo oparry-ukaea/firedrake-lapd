@@ -54,6 +54,7 @@ def _normalise(cfg):
         / phys["omega_ci"]
         / phys["m_i"]
         / norm["mass"],
+        c_s0=phys["c_s0"] * norm["Lpar"] / norm["time"],
         e=constants["e"] * norm["charge"],
         Ls=model["Ls"] * norm["Ltrans"],
         m_e=phys["m_e"] * norm["mass"],
@@ -64,9 +65,12 @@ def _normalise(cfg):
         S0n=model["S0n"] * norm["n"] / norm["time"],
         S0T=model["S0T"] * norm["T"] / norm["time"],
         T_init=model["T_init"] * norm["T"],
-        u_ref=phys["c_s0"] * norm["Lpar"] / norm["time"],
     )
-    if mesh["type"] != "rectangle":
+    if mesh["type"] == "rectangle":
+        # Dimensionless, but included here for consistency
+        cfg["normalised"]["sigma"] = phys["sigma"]
+        cfg["normalised"]["R"] = phys["R"] * norm["Ltrans"]
+    else:
         cfg["normalised"]["dz"] = mesh["Lz"] / mesh["nz"]
         cfg["normalised"]["sigma_par"] = (
             phys["sigma_par"]
@@ -76,6 +80,7 @@ def _normalise(cfg):
             * norm["charge"]
             / norm["mass"]
         )
+        cfg["normalised"]["u_ref"] = 1.0 * cfg["normalised"]["c_s0"]
 
 
 def _process_params(cfg):
