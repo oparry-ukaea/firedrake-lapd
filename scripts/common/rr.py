@@ -149,7 +149,7 @@ def _process_params(cfg):
     phys_cfg["c_s0_over_R"] = phys_cfg["c_s0"] / phys_cfg["R"] / phys_cfg["Lz"]
     phys_cfg["L"] = 100 * phys_cfg["rho_s0"]
     if mesh_type == "rectangle":
-        phys_cfg["sigma"] = 1.5 * phys_cfg["R"]
+        phys_cfg["sigma"] = 1.5 * phys_cfg["R"] / phys_cfg["Lz"]
     else:
         phys_cfg["sigma_par"] = (
             constants["e"]
