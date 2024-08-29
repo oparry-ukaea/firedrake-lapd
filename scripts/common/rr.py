@@ -93,6 +93,7 @@ def _process_params(cfg):
     time_cfg = cfg["time"]
     # Time-related defaults
     set_default_param(time_cfg, "order", 1)
+    set_default_param(time_cfg, "info_freq", 10)
     set_default_param(time_cfg, "output_freq", 10)
     set_default_param(time_cfg, "num_steps", 1000)
 

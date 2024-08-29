@@ -220,10 +220,11 @@ def rogers_ricci2D():
         t.assign(float(t) + float(dt))
         it_end = time.time()
         it_wall_time = it_end - it_start
-        PETSc.Sys.Print(
-            f"  Iter {step+1:d}/{time_cfg['num_steps']:d} took {it_wall_time:.5g} s"
-        )
-        PETSc.Sys.Print(f"t = {float(t):.5g}")
+        if step % cfg["time"]["info_freq"] == 0:
+            PETSc.Sys.Print(
+                f"  Iter {step+1:d}/{time_cfg['num_steps']:d} took {it_wall_time:.5g} s"
+            )
+            PETSc.Sys.Print(f"t = {float(t):.5g}")
         step += 1
 
     wall_time = time.time() - start
