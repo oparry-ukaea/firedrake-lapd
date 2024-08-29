@@ -1,7 +1,7 @@
 mesh:
   type: rectangle
-  nx: 32
-  ny: 32
+  nx: 64
+  ny: 64
 model:
   coulomb_fac_enabled: False
   do_streamline_upwinding: True
