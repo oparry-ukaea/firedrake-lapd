@@ -1,15 +1,26 @@
-from firedrake import ExtrudedMesh, mesh, TensorBoxMesh, ufl
+from firedrake import ExtrudedMesh, mesh, RectangleMesh, TensorBoxMesh, ufl
 import numpy as np
 from pyop2.mpi import COMM_WORLD
 from firedrake import PETSc
 from firedrake.cython import dmcommon
 
 
-def set_up_mesh(opts):
+def set_up_mesh(opts, name="no_name_set"):
     try:
         mesh_opts = opts["mesh"]
         mesh_type = mesh_opts["type"]
-        if mesh_type == "cuboid":
+        if mesh_type == "rectangle":
+            mesh = RectangleMesh(
+                mesh_opts["nx"],
+                mesh_opts["ny"],
+                mesh_opts["xmin"] + mesh_opts["Lx"],
+                mesh_opts["ymin"] + mesh_opts["Ly"],
+                originX=mesh_opts["xmin"],
+                originY=mesh_opts["ymin"],
+                quadrilateral=True,
+                name=name,
+            )
+        elif mesh_type == "cuboid":
             mesh = BoxMesh(
                 mesh_opts["nx"],
                 mesh_opts["ny"],
