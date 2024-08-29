@@ -1,6 +1,7 @@
 from .io import read_yaml_config, set_default_param
 import math
-from Firedrake import Function, sqrt, tanh
+from firedrake import Function, sqrt, tanh
+
 
 def _normalise(cfg):
     # Shorter references to various config sections for the sake of brevity
@@ -33,7 +34,7 @@ def _normalise(cfg):
     # Space norm
     mesh["Lz"] = mesh["Lz"] * norm["Lpar"]
     mesh["zmin"] = mesh["zmin"] * norm["Lpar"]
-    if mesh["type"] == "cuboid":
+    if mesh["type"] in ["cuboid", "rectangle"]:
         for key in ["Lx", "Ly", "xmin", "ymin"]:
             mesh[key] = mesh[key] * norm["Ltrans"]
     elif mesh["type"] == "cylinder":
@@ -53,7 +54,6 @@ def _normalise(cfg):
         / phys["omega_ci"]
         / phys["m_i"]
         / norm["mass"],
-        dz=mesh["Lz"] / mesh["nz"],
         e=constants["e"] * norm["charge"],
         Ls=model["Ls"] * norm["Ltrans"],
         m_e=phys["m_e"] * norm["mass"],
@@ -61,17 +61,21 @@ def _normalise(cfg):
         n_init=model["n_init"] * norm["n"],
         omega_ci=phys["omega_ci"] / norm["time"],
         rs=model["rs"] * norm["Ltrans"],
-        sigma_par=phys["sigma_par"]
-        * norm["time"]
-        * norm["n"]
-        * norm["charge"]
-        * norm["charge"]
-        / norm["mass"],
         S0n=model["S0n"] * norm["n"] / norm["time"],
         S0T=model["S0T"] * norm["T"] / norm["time"],
         T_init=model["T_init"] * norm["T"],
         u_ref=phys["c_s0"] * norm["Lpar"] / norm["time"],
     )
+    if mesh["type"] != "rectangle":
+        cfg["normalised"]["dz"] = mesh["Lz"] / mesh["nz"]
+        cfg["normalised"]["sigma_par"] = (
+            phys["sigma_par"]
+            * norm["time"]
+            * norm["n"]
+            * norm["charge"]
+            * norm["charge"]
+            / norm["mass"]
+        )
 
 
 def _process_params(cfg):
@@ -118,7 +122,7 @@ def _process_params(cfg):
     mesh_cfg = cfg["mesh"]
     set_default_param(mesh_cfg, "type", "cuboid")
     mesh_type = mesh_cfg["type"]
-    if mesh_type == "cuboid":
+    if mesh_type in ["cuboid", "rectangle"]:
         set_default_param(mesh_cfg, "nx", 1024)
         set_default_param(mesh_cfg, "ny", 1024)
         set_default_param(mesh_cfg, "use_hex", True)
@@ -127,28 +131,33 @@ def _process_params(cfg):
         set_default_param(mesh_cfg, "ref_level", 3)
     else:
         raise ValueError(f"{mesh_type} is an invalid mesh type")
-    set_default_param(mesh_cfg, "nz", 64)
+
+    if mesh_type != "rectangle":
+        set_default_param(mesh_cfg, "nz", 64)
 
     # Derived physical params
     phys_cfg["B"] = phys_cfg["omega_ci"] * phys_cfg["m_i"] / constants["e"]
     phys_cfg["c_s0"] = math.sqrt(phys_cfg["T_e0"] * constants["e"] / phys_cfg["m_i"])
     phys_cfg["rho_s0"] = phys_cfg["c_s0"] / phys_cfg["omega_ci"]
-    phys_cfg["c_s0_over_R"] = phys_cfg["c_s0"] / phys_cfg["R"]
+    phys_cfg["c_s0_over_R"] = phys_cfg["c_s0"] / phys_cfg["R"] / phys_cfg["Lz"]
     phys_cfg["L"] = 100 * phys_cfg["rho_s0"]
-    phys_cfg["sigma_par"] = (
-        constants["e"]
-        * constants["e"]
-        * phys_cfg["n_0"]
-        * phys_cfg["R"]
-        / phys_cfg["m_i"]
-        / phys_cfg["c_s0"]
-        / phys_cfg["nu"]
-    )
+    if mesh_type == "rectangle":
+        phys_cfg["sigma"] = 1.5 * phys_cfg["R"]
+    else:
+        phys_cfg["sigma_par"] = (
+            constants["e"]
+            * constants["e"]
+            * phys_cfg["n_0"]
+            * phys_cfg["R"]
+            / phys_cfg["m_i"]
+            / phys_cfg["c_s0"]
+            / phys_cfg["nu"]
+        )
 
     # Derived mesh params
     mesh_cfg["Lz"] = phys_cfg["Lz"]
     mesh_cfg["zmin"] = -phys_cfg["Lz"] / 2
-    if mesh_type == "cuboid":
+    if mesh_cfg["type"] in ["cuboid", "rectangle"]:
         mesh_cfg["Lx"] = phys_cfg["L"]
         mesh_cfg["Ly"] = phys_cfg["L"]
         mesh_cfg["xmin"] = -phys_cfg["L"] / 2
@@ -177,11 +186,12 @@ def _process_params(cfg):
     # print(f"c_s0_over_R = {phys_cfg['c_s0_over_R']:.1E} Hz")
 
 
-def read_rr_config(fname. is_2D=False):
+def read_rr_config(fname):
     # Read Rogers & Ricci config file (expected next to this script)
     return read_yaml_config(
         fname, process_derived=_process_params, normalise=_normalise
     )
+
 
 def rr_src_term(fspace, x, y, var, cfg):
     """
