@@ -67,9 +67,9 @@ def _normalise(cfg):
         T_init=model["T_init"] * norm["T"],
     )
     if mesh["type"] == "rectangle":
-        # Dimensionless, but included here for consistency
-        cfg["normalised"]["sigma"] = phys["sigma"]
         cfg["normalised"]["R"] = phys["R"] * norm["Ltrans"]
+        # Dimensionless, but included here for consistency
+        cfg["normalised"]["sigma"] = phys["sigma"] * norm["Ltrans"] / norm["Lpar"]
     else:
         cfg["normalised"]["dz"] = mesh["Lz"] / mesh["nz"]
         cfg["normalised"]["sigma_par"] = (
