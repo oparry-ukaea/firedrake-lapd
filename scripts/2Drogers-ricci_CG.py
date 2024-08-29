@@ -1,6 +1,8 @@
 from firedrake import (
+    as_vector,
     Constant,
     DirichletBC,
+    dot,
     dx,
     exp,
     Function,
@@ -11,6 +13,7 @@ from firedrake import (
     solve,
     SpatialCoordinate,
     split,
+    sqrt,
     TestFunction,
     TestFunctions,
     TrialFunction,
@@ -29,6 +32,19 @@ def exp_T_term(T, phi, cfg, eps=1e-2):
     e = Constant(cfg["normalised"]["e"])
     Lambda = Constant(cfg["physical"]["Lambda"])
     return exp((Lambda - e * phi / abs(T + eps)))
+
+
+def SU_term(tri, test, phi, h, cfg, eps=1e-2):
+    c_over_B = Constant(cfg["normalised"]["c_over_B"])
+    driftvel = as_vector([c_over_B * grad(phi)[1], -c_over_B * grad(phi)[0]])
+    return (
+        0.5
+        * h
+        * (dot(driftvel, grad(tri)))
+        * dot(driftvel, grad(test))
+        * (1 / sqrt((driftvel[0]) ** 2 + (driftvel[1]) ** 2 + eps * eps))
+        * dx
+    )
 
 
 def nl_solve_setup(F, t, dt, state, cfg):
@@ -132,42 +148,31 @@ def rogers_ricci2D():
     sigma_cs_over_R = Constant(
         cfg["normalised"]["sigma"] * cfg["normalised"]["c_s0"] / cfg["normalised"]["R"]
     )
+    h_SU = cfg["mesh"]["Lx"] / cfg["mesh"]["nx"]
     n_terms = (
-        (
-            Dt(n)
-            - poisson_bracket(n, phi, cfg["normalised"]["c_over_B"])
-            + sigma_cs_over_R * n * exp_T_term(T, phi, cfg)
-            - n_src
-        )
-        * n_test
-        * dx
-    )
+        Dt(n)
+        - poisson_bracket(n, phi, cfg["normalised"]["c_over_B"])
+        + sigma_cs_over_R * n * exp_T_term(T, phi, cfg)
+        - n_src
+    ) * n_test * dx + SU_term(n, n_test, phi, h_SU, cfg)
 
     e = cfg["normalised"]["e"]
     m_i = cfg["normalised"]["m_i"]
     Omega_ci = cfg["normalised"]["omega_ci"]
     w_terms = (
-        (
-            Dt(w)
-            - poisson_bracket(w, phi, cfg["normalised"]["c_over_B"])
-            - Constant(sigma_cs_over_R * m_i * Omega_ci * Omega_ci / e)
-            * (1 - exp_T_term(T, phi, cfg))
-        )
-        * w_test
-        * dx
-    )
+        Dt(w)
+        - poisson_bracket(w, phi, cfg["normalised"]["c_over_B"])
+        - Constant(sigma_cs_over_R * m_i * Omega_ci * Omega_ci / e)
+        * (1 - exp_T_term(T, phi, cfg))
+    ) * w_test * dx + SU_term(w, w_test, phi, h_SU, cfg)
     T_terms = (
-        (
-            Dt(T)
-            - poisson_bracket(T, phi, cfg["normalised"]["c_over_B"])
-            + Constant(sigma_cs_over_R * 2 / 3)
-            * T
-            * (1.71 * exp_T_term(T, phi, cfg) - 0.71)
-            - T_src
-        )
-        * T_test
-        * dx
-    )
+        Dt(T)
+        - poisson_bracket(T, phi, cfg["normalised"]["c_over_B"])
+        + Constant(sigma_cs_over_R * 2 / 3)
+        * T
+        * (1.71 * exp_T_term(T, phi, cfg) - 0.71)
+        - T_src
+    ) * T_test * dx + SU_term(T, T_test, phi, h_SU, cfg)
 
     F = n_terms + w_terms + T_terms
 
