@@ -67,7 +67,7 @@ def phi_solve_setup(phi_space, vorticity, mesh_cfg):
     phi_test = TestFunction(phi_space)
     phi_tri = TrialFunction(phi_space)
     Lphi = inner(grad(phi_tri), grad(phi_test)) * dx
-    Rphi = vorticity * phi_test * dx
+    Rphi = -vorticity * phi_test * dx
 
     # D0 on all boundaries
     if mesh_cfg["type"] in ["cuboid", "rectangle"]:
