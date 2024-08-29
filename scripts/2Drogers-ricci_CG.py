@@ -116,7 +116,7 @@ def rogers_ricci2D():
     phi.rename("potential")
     combined_space = n_space * w_space * T_space
     time_evo_funcs = Function(combined_space)
-    n, T, w = split(time_evo_funcs)
+    n, w, T = split(time_evo_funcs)
     subspace_indices = dict(n=0, w=1, T=2)
 
     # Rename fields and set up funcs for output
