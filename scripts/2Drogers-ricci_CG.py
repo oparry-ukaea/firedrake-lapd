@@ -48,18 +48,19 @@ def SU_term(tri, test, phi, h, cfg, eps=1e-2):
 
 
 def nl_solve_setup(F, t, dt, state, cfg):
-    butcher_tableau = GaussLegendre(cfg["order"])
+    butcher_tableau = GaussLegendre(cfg["time"]["order"])
     nl_solver_params = {
-        "snes_monitor": None,
         "snes_max_it": 100,
         "snes_linesearch_type": "l2",
-        "ksp_monitor": None,
-        "ksp_view": None,
         "ksp_type": "preonly",
         "pc_type": "lu",
         "mat_type": "aij",
         "pc_factor_mat_solver_type": "mumps",
     }
+    if cfg["debug"]:
+        nl_solver_params["ksp_monitor"] = None
+        nl_solver_params["snes_monitor"] = None
+
     return TimeStepper(F, butcher_tableau, t, dt, state, solver_parameters=nl_solver_params)  # fmt: skip
 
 
@@ -186,7 +187,7 @@ def rogers_ricci2D():
     time_evo_funcs.sub(subspace_indices["w"]).interpolate(0.0)
     phi.interpolate(0.0)
 
-    stepper = nl_solve_setup(F, t, dt, time_evo_funcs, time_cfg)
+    stepper = nl_solve_setup(F, t, dt, time_evo_funcs, cfg)
 
     # Set up output and write ICs
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))

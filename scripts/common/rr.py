@@ -88,6 +88,7 @@ def _process_params(cfg):
     Set some default parameter values and add derived parameters
     """
     set_default_param(cfg, "output_base", "rogers-ricci")
+    set_default_param(cfg, "debug", False)
 
     time_cfg = cfg["time"]
     # Time-related defaults
