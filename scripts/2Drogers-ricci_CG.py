@@ -143,8 +143,6 @@ def rogers_ricci2D():
     # Assemble variational problem
     n_test, w_test, T_test = TestFunctions(combined_space)
 
-    wall_time = time.time() - start
-
     sigma_cs_over_R = Constant(
         cfg["normalised"]["sigma"] * cfg["normalised"]["c_s0"] / cfg["normalised"]["R"]
     )
@@ -227,6 +225,7 @@ def rogers_ricci2D():
         PETSc.Sys.Print(f"t = {float(t):.5g}")
         step += 1
 
+    wall_time = time.time() - start
     PETSc.Sys.Print("\nDone.")
     PETSc.Sys.Print(f"Total wall time: {wall_time:.5g}")
 
