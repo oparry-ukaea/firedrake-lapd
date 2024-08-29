@@ -5,7 +5,6 @@ mesh:
 model:
   coulomb_fac_enabled: False
   do_streamline_upwinding: True
-  is_isothermal: True
   n_init: 2.0e+12
   S0n_fac: 0.03
   S0T_fac: 0.03
