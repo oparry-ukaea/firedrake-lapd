@@ -64,16 +64,22 @@ def nl_solve_setup(F, t, dt, state, cfg):
     return TimeStepper(F, butcher_tableau, t, dt, state, solver_parameters=nl_solver_params)  # fmt: skip
 
 
-def phi_solve_setup(phi_space, vorticity, mesh_cfg):
+def phi_solve_setup(phi_space, vorticity, cfg):
     phi_test = TestFunction(phi_space)
     phi_tri = TrialFunction(phi_space)
     Lphi = inner(grad(phi_tri), grad(phi_test)) * dx
-    Rphi = -vorticity * phi_test * dx
+    rhs_fac = (
+        cfg["normalised"]["e"]
+        * cfg["normalised"]["B"] ** 2
+        / cfg["normalised"]["m_i"]
+        / cfg["normalised"]["n_char"]
+    )
+    Rphi = Constant(rhs_fac) * -vorticity * phi_test * dx
 
     # D0 on all boundaries
-    if mesh_cfg["type"] in ["cuboid", "rectangle"]:
+    if cfg["mesh"]["type"] in ["cuboid", "rectangle"]:
         bdy_lbl_all = "on_boundary"
-    elif mesh_cfg["type"] == "cylinder":
+    elif cfg["mesh"]["type"] == "cylinder":
         bdy_lbl_all = ("on_boundary", "top", "bottom")
     phi_BCs = DirichletBC(phi_space, 0, bdy_lbl_all)
 
@@ -137,9 +143,7 @@ def rogers_ricci2D():
     # src_outfile = VTKFile(f"2Dsrc_funcs.pvd")
     # src_outfile.write(n_src, T_src)
 
-    phi_eqn, phi_bcs, phi_solve_params, nullspace = phi_solve_setup(
-        phi_space, w, cfg["mesh"]
-    )
+    phi_eqn, phi_bcs, phi_solve_params, nullspace = phi_solve_setup(phi_space, w, cfg)
 
     # Assemble variational problem
     n_test, w_test, T_test = TestFunctions(combined_space)

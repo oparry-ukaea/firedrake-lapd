@@ -59,6 +59,7 @@ def _normalise(cfg):
         Ls=model["Ls"] * norm["Ltrans"],
         m_e=phys["m_e"] * norm["mass"],
         m_i=phys["m_i"] * norm["mass"],
+        n_char=phys["n_char"] * norm["n"],
         n_init=model["n_init"] * norm["n"],
         omega_ci=phys["omega_ci"] / norm["time"],
         rs=model["rs"] * norm["Ltrans"],
@@ -119,6 +120,7 @@ def _process_params(cfg):
     set_default_param(phys_cfg, "m_i", 4 * constants["m_p"])
     # Unless defaults are overridden, use mass-boosted electrons as per paper; m_e = m_i/400 = m_p/100
     set_default_param(phys_cfg, "m_e", phys_cfg["m_i"] / 400.0)
+    set_default_param(phys_cfg, "n_char", 2e18)
     set_default_param(phys_cfg, "n_0", 2e18)
     set_default_param(phys_cfg, "nu", 0.03)
     set_default_param(phys_cfg, "omega_ci", 9.6e5)
