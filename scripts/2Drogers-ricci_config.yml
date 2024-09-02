@@ -16,6 +16,7 @@ physical:
   R: 0.5
   T_e0: 6
 time:
-  num_steps: 400
-  output_freq: 1
-  t_end: 1000.0e-6
+  num_steps: 500000
+  info_freq: 100
+  output_freq: 1000
+  t_end: 500.0e-6
