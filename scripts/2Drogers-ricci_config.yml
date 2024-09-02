@@ -3,7 +3,6 @@ mesh:
   nx: 64
   ny: 64
 model:
-  coulomb_fac_enabled: False
   do_streamline_upwinding: True
   n_init: 2.0e+12
   S0n_fac: 0.03
