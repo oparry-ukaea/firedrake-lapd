@@ -4,10 +4,10 @@ mesh:
   ny: 64
 model:
   do_streamline_upwinding: True
-  n_init: 2.0e+12
+  n_init: 2.0e+14
   S0n_fac: 0.03
   S0T_fac: 0.03
-  T_init: 6.0e-6
+  T_init: 6.0e-4
 physical:
   n_0: 2.0e+18
   nu: 0.03
