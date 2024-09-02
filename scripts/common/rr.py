@@ -68,6 +68,7 @@ def _normalise(cfg):
         S0T=model["S0T"] * norm["T"] / norm["time"],
         T_init=model["T_init"] * norm["T"],
     )
+    cfg["normalised"]["B"] = phys["B"] * norm["mass"] / norm["time"] / norm["charge"]
     if mesh["type"] == "rectangle":
         cfg["normalised"]["R"] = phys["R"] * norm["Ltrans"]
         # Dimensionless, but included here for consistency
