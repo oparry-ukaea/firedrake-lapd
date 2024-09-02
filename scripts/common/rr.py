@@ -11,6 +11,7 @@ def _normalise(cfg):
     phys = cfg["physical"]
 
     # Normalisation factors
+    # N.B. T norm is in 1/eV, phi norm is in C/eV
     norm = dict(
         charge=1 / constants["e"],
         n=1 / phys["n_0"],
@@ -20,14 +21,14 @@ def _normalise(cfg):
         phi=constants["e"] / phys["T_e0"],
         time=phys["c_s0"] / phys["R"],
     )
-    # Derive mass normalisation from other quantities
+    # Derive mass normalisation from other quantities (convert phi norm from C/eV to C/J)
     norm["mass"] = (
-        norm["T"]
-        / constants["e"]
+        (norm["phi"] / constants["e"])
         * norm["time"]
         * norm["time"]
         / norm["Ltrans"]
         / norm["Ltrans"]
+        * norm["charge"]
     )
     cfg["norm_factors"] = norm
 
