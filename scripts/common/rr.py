@@ -48,13 +48,6 @@ def _normalise(cfg):
 
     # Store some other normalised quantities for use in the ICs and BCs
     cfg["normalised"] = dict(
-        c_over_B=1
-        * constants["e"]
-        * norm["charge"]
-        * norm["time"]
-        / phys["omega_ci"]
-        / phys["m_i"]
-        / norm["mass"],
         c_s0=phys["c_s0"] * norm["Lpar"] / norm["time"],
         e=constants["e"] * norm["charge"],
         Ls=model["Ls"] * norm["Ltrans"],

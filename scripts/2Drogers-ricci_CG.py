@@ -35,8 +35,8 @@ def exp_T_term(T, phi, cfg, eps=1e-2):
 
 
 def SU_term(tri, test, phi, h, cfg, eps=1e-2):
-    c_over_B = Constant(cfg["normalised"]["c_over_B"])
-    driftvel = as_vector([c_over_B * grad(phi)[1], -c_over_B * grad(phi)[0]])
+    one_over_B = Constant(1 / cfg["normalised"]["B"])
+    driftvel = as_vector([one_over_B * grad(phi)[1], -one_over_B * grad(phi)[0]])
     return (
         0.5
         * h
@@ -98,9 +98,8 @@ def phi_solve_setup(phi_space, vorticity, cfg):
     return Lphi == Rphi, phi_BCs, solver_params, nullspace
 
 
-def poisson_bracket(f, phi, c_over_B):
-    # return c_over_B * (phi.dx(0) * f.dx(1) - phi.dx(1) * f.dx(0))
-    return Constant(c_over_B) * (grad(phi)[0] * grad(f)[1] - grad(phi)[1] * grad(f)[0])
+def poisson_bracket(f, phi, B):
+    return Constant(1 / B) * (grad(phi)[0] * grad(f)[1] - grad(phi)[1] * grad(f)[0])
 
 
 def rogers_ricci2D():
@@ -154,7 +153,7 @@ def rogers_ricci2D():
     h_SU = cfg["mesh"]["Lx"] / cfg["mesh"]["nx"]
     n_terms = (
         Dt(n)
-        - poisson_bracket(n, phi, cfg["normalised"]["c_over_B"])
+        - poisson_bracket(n, phi, cfg["normalised"]["B"])
         + sigma_cs_over_R * n * exp_T_term(T, phi, cfg)
         - n_src
     ) * n_test * dx + SU_term(n, n_test, phi, h_SU, cfg)
@@ -164,13 +163,13 @@ def rogers_ricci2D():
     Omega_ci = cfg["normalised"]["omega_ci"]
     w_terms = (
         Dt(w)
-        - poisson_bracket(w, phi, cfg["normalised"]["c_over_B"])
+        - poisson_bracket(w, phi, cfg["normalised"]["B"])
         - Constant(sigma_cs_over_R * m_i * Omega_ci * Omega_ci / e)
         * (1 - exp_T_term(T, phi, cfg))
     ) * w_test * dx + SU_term(w, w_test, phi, h_SU, cfg)
     T_terms = (
         Dt(T)
-        - poisson_bracket(T, phi, cfg["normalised"]["c_over_B"])
+        - poisson_bracket(T, phi, cfg["normalised"]["B"])
         + Constant(sigma_cs_over_R * 2 / 3)
         * T
         * (1.71 * exp_T_term(T, phi, cfg) - 0.71)
