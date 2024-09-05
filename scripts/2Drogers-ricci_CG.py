@@ -18,7 +18,6 @@ from firedrake import (
     TestFunction,
     TestFunctions,
     TrialFunction,
-    VectorSpaceBasis,
     VTKFile,
 )
 
@@ -94,9 +93,7 @@ def phi_solve_setup(phi_space, vorticity, cfg):
         "pc_factor_mat_solver_type": "mumps",
     }
 
-    nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
-
-    return Lphi == Rphi, phi_BCs, solver_params, nullspace
+    return Lphi == Rphi, phi_BCs, solver_params
 
 
 def poisson_bracket(f, phi, B):
@@ -145,7 +142,7 @@ def rogers_ricci2D():
     # src_outfile = VTKFile(f"2Dsrc_funcs.pvd")
     # src_outfile.write(n_src, T_src)
 
-    phi_eqn, phi_bcs, phi_solve_params, nullspace = phi_solve_setup(phi_space, w, cfg)
+    phi_eqn, phi_bcs, phi_solve_params = phi_solve_setup(phi_space, w, cfg)
 
     # Assemble variational problem
     n_test, w_test, T_test = TestFunctions(combined_space)
@@ -211,7 +208,7 @@ def rogers_ricci2D():
         if (float(t) + float(dt)) > t_end:
             dt.assign(t_end - float(t))
             PETSc.Sys.Print(f"  Last dt = {dt}")
-        solve(phi_eqn, phi, nullspace=nullspace, solver_parameters=phi_solve_params, bcs=phi_bcs)  # fmt: skip
+        solve(phi_eqn, phi, solver_parameters=phi_solve_params, bcs=phi_bcs)  # fmt: skip
 
         # Write fields on output steps
         if step % cfg["time"]["output_freq"] == 0:
