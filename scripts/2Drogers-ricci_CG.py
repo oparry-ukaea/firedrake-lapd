@@ -99,8 +99,8 @@ def phi_solve_setup(phi_space, vorticity, cfg):
 
 def poisson_bracket(f, phi, B):
     one_over_B = Constant(1 / B)
-    driftvel = as_vector([one_over_B * grad(phi)[1], -one_over_B * grad(phi)[0]])
-    return Constant(1 / B) * div(f * driftvel)
+    driftvel = as_vector([grad(phi)[1], -grad(phi)[0]])
+    return one_over_B * div(f * driftvel)
 
 
 def rogers_ricci2D():
