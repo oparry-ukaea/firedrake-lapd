@@ -27,11 +27,12 @@ SI equation: $\frac{d n}{dt} = -\sigma\frac{n c_s}{R}\exp(\Lambda - e\phi/T_e) +
 
 ---
 Let
+
 $$
 \begin{align}
 S_n' &= S_n \frac{R}{n_0 c_s}\\
-&= 0.03\left\{1-\tanh[(r-r_s)/L_s]\right\} \\
-&= 0.03\left\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\}
+&= 0.03\left\\{1-\tanh[(r-r_s)/L_s]\right\\} \\
+&= 0.03\left\\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\\}
 \end{align}
 $$
 
@@ -54,11 +55,12 @@ SI equation: $\frac{d T_e}{dt} = -\sigma\frac{2}{3}\frac{T_e c_s}{R}\left[1.71\e
 ---
 
 Let
+
 $$
 \begin{align}
 S_T' &= S_T \frac{R}{T_0 c_s}\\
-&= 0.03\left\{1-\tanh[(r-r_s)/L_s]\right\} \\
-&= 0.03\left\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\}
+&= 0.03\left\\{1-\tanh[(r-r_s)/L_s]\right\\} \\
+&= 0.03\left\\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\\}
 \end{align}
 $$
 
@@ -107,6 +109,7 @@ $$
 ~~({\bf 4}) \\
 \end{align}
 $$
+
 Where  $c_s^2=T_0/m_i=\rho_{s0}^2\Omega_{ci}^2$ was used to obtain the penultimate line and the last line follows from the choice $\bar{n}=n_0$.
 ### Poisson Brackets
 
@@ -122,6 +125,7 @@ $$
 ~~({\bf 5}) \\
 \end{align}
 $$
+
 Where
 $\rho_{s0}=\frac{c_s}{\Omega_{ci}}$, $c_s^2=\frac{T_0}{m_i}$ and $\Omega_{ci}=\frac{eB}{m_i}$ ($=> \frac{T_0}{B\rho_{s0}e c_s}=1$) were used to obtain the penultimate line  from the one above.
 and all factors required to transform $f\mapsto f'$ on the first line cancel.

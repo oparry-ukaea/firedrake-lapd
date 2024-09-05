@@ -5,6 +5,7 @@ Model based on the **2D** finite difference implementation described in "*Low-fr
 ## Equations
 
 In SI units:
+
 $$
 \begin{aligned}
 \frac{d n}{dt} &= -\sigma\frac{n c_s}{R}\exp(\Lambda - e\phi/T_e) + S_n ~~~(1)\\
@@ -19,7 +20,6 @@ $$
 \begin{aligned}
 \sigma &= \frac{1.5 R}{L_z} \\
 \frac{df}{dt} &= \frac{\partial f}{\partial t} - \frac{1}{B}\left[\phi,f\right] \\
-
 \end{aligned}
 $$
 
@@ -89,9 +89,9 @@ The normalised forms of the equations are:
 
 $$
 \begin{align}
-\frac{d n'}{dt'} &= -\frac{1}{24}\exp(3 - \phi'/T_e')n' + S_n'  ~~({\bf 4}) \\
-\frac{d T_e'}{dt'} &= -\frac{1}{36}\left[1.71\exp(3 - \phi'/T_e')-0.71\right]T_e' + S_T'  ~~({\bf 5}) \\
-\frac{d \nabla'^2\phi'}{dt'} &= \frac{1}{24}\left[1-\exp(3 - \phi'/T_e')\right]~~({\bf 6})\\
+\frac{d n'}{dt'} &= -\frac{1}{24}\exp(3 - \phi'/T_e')n' + S_n'  ~~~({\bf 4}) \\
+\frac{d T_e'}{dt'} &= -\frac{1}{36}\left[1.71\exp(3 - \phi'/T_e')-0.71\right]T_e' + S_T'  ~~~({\bf 5}) \\
+\frac{d \nabla'^2\phi'}{dt'} &= \frac{1}{24}\left[1-\exp(3 - \phi'/T_e')\right] ~~~({\bf 6})\\
 \nabla'^2\phi' &= \omega ~~({\bf 7}) \\
 \end{align}
 $$
@@ -100,8 +100,8 @@ with
 
 $$
 \begin{align}
-S_n' = S_T' &= 0.03\left\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\} \\
-\frac{df'}{dt'} &= \frac{\partial f'}{\partial t'} - 40\left[\phi',f'\right]' ~~({\bf 7}) \\
+S_n' = S_T' &= 0.03\left\\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\\} \\
+\frac{df'}{dt'} &= \frac{\partial f'}{\partial t'} - 40\left[\phi',f'\right]' ~~~({\bf 7}) \\
 \end{align}
 $$
 
