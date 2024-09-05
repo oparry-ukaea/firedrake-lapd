@@ -119,7 +119,7 @@ Script: [2Drogers-ricci_CG.py](../scripts/2Drogers-ricci_CG.py)
 ### Weak Form
 
 Equations 1-5 are discretised over a domain $\Omega$ using a continuous Galerkin formulation.
-The functions $n$, $T$ and $\omega$, and respective test functions $v_1$, $v_2$, $v_3$$ live in separate CG function spaces ($V_1$ - $V_3$) which need not be of the same polynomial order.
+The functions $n$, $T$ and $\omega$, and respective test functions $v_1$, $v_2$, $v_3$ live in separate CG function spaces ($V_1$ - $V_3$) which need not be of the same polynomial order.
 
 The weak form of the equations, below are written using the shorthand $\left< f(n), v_1 \right> \equiv \int_\Omega f(n) v_1 d\mathbf{x}$ to indicate the standard process of multiplying terms by a test function and integrating over the domain. In practice we look for a solution in the combined function space $V=V_1\times V_2\times V_3$ where
 
