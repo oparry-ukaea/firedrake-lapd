@@ -104,6 +104,7 @@ def _process_params(cfg):
     set_default_param(model_cfg, "is_isothermal", False)
     set_default_param(model_cfg, "coulomb_fac_enabled", False)
     set_default_param(model_cfg, "do_streamline_upwinding", True)
+    set_default_param(model_cfg, "Ls_boost", 1.0)
     set_default_param(model_cfg, "n_init", 1e18)
     set_default_param(model_cfg, "T_init", 6.0)
 
@@ -171,7 +172,7 @@ def _process_params(cfg):
         mesh_cfg["radius"] = phys_cfg["L"]
 
     # Derived model params
-    model_cfg["Ls"] = 0.5 * phys_cfg["rho_s0"]
+    model_cfg["Ls"] = 0.5 * model_cfg["Ls_boost"] * phys_cfg["rho_s0"]
     model_cfg["rs"] = 20 * phys_cfg["rho_s0"]
     model_cfg["S0n"] = (
         model_cfg["S0n_fac"] * phys_cfg["n_0"] * phys_cfg["c_s0"] / phys_cfg["R"]
