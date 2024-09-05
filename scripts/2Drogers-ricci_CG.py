@@ -67,14 +67,15 @@ def nl_solve_setup(F, t, dt, state, cfg):
 def phi_solve_setup(phi_space, vorticity, cfg):
     phi_test = TestFunction(phi_space)
     phi_tri = TrialFunction(phi_space)
-    Lphi = inner(grad(phi_tri), grad(phi_test)) * dx
+    # N.B. Integration by parts gives you a -ve sign on the LHS
+    Lphi = -1 * inner(grad(phi_tri), grad(phi_test)) * dx
     rhs_fac = (
         cfg["normalised"]["e"]
         * cfg["normalised"]["B"] ** 2
         / cfg["normalised"]["m_i"]
         / cfg["normalised"]["n_char"]
     )
-    Rphi = Constant(rhs_fac) * -vorticity * phi_test * dx
+    Rphi = Constant(rhs_fac) * vorticity * phi_test * dx
 
     # D0 on all boundaries
     if cfg["mesh"]["type"] in ["cuboid", "rectangle"]:
