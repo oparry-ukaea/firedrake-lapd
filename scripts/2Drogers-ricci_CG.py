@@ -31,7 +31,7 @@ import time
 def exp_T_term(T, phi, cfg, eps=1e-2):
     e = Constant(cfg["normalised"]["e"])
     Lambda = Constant(cfg["physical"]["Lambda"])
-    return exp((Lambda - e * phi / abs(T + eps)))
+    return exp(Lambda - e * phi / sqrt(T * T + eps * eps))
 
 
 def SU_term(tri, test, phi, h, cfg, eps=1e-2):
