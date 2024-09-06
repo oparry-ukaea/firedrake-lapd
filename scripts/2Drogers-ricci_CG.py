@@ -191,14 +191,8 @@ def rogers_ricci2D():
 
     stepper = nl_solve_setup(F, t, dt, time_evo_funcs, cfg)
 
-    # Set up output and write ICs
+    # Set up output
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
-    outfile.write(
-        time_evo_funcs.sub(subspace_indices["n"]),
-        time_evo_funcs.sub(subspace_indices["w"]),
-        time_evo_funcs.sub(subspace_indices["T"]),
-        phi,
-    )
 
     PETSc.Sys.Print("\nTimestep loop:")
     step = 0
