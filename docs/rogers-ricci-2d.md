@@ -109,8 +109,8 @@ This system can be be obtained by applying the normalisation factors in the tabl
 
 #### Simulation time
 
-Based on Fig 4. of Rogers & Ricci, looks like total simulation time for the 3D version is $\sim 12$. Assume 2D is the same.
-Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0} = 500 \mu{\rm s}$ before normalisation.
+Based on Fig 4. of Rogers & Ricci, the simulation time for the 3D version might be $\sim 12$ in normalised units (= $500~\mu$s), but it's not clear if the full duration is being shown. 
+$500~\mu$s doesn't seem enough time for anything interesting to happen - we (arbitrarily) choose to run for twenty times longer - $10~$ms.
 
 ## CG version
 
