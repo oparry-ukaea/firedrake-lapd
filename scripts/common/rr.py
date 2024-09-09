@@ -200,20 +200,27 @@ def read_rr_config(fname):
 
 
 def rr_steady_state(x, y, cfg):
-    sigma_cs_over_R = Constant(
-        cfg["normalised"]["sigma"] * cfg["normalised"]["c_s0"] / cfg["normalised"]["R"]
+    cfg_norm = cfg["normalised"]
+
+    # Fudge to get steady state to run - boost Ls in the ICs (but not the equations themselves)
+    # Means we only have phi ~ 3T in the central blob, not outside
+    norm_soft = dict(cfg_norm)
+    norm_soft["Ls"] = norm_soft["Ls"] * 5
+
+    sigma_cs_over_R = Constant(norm_soft["sigma"] * norm_soft["c_s0"] / norm_soft["R"])
+    n_init = rr_src_ufl(x, y, "n", dict(normalised=norm_soft)) / sigma_cs_over_R
+    T_init = rr_src_ufl(x, y, "T", dict(normalised=norm_soft)) / (
+        sigma_cs_over_R * 2 / 3
     )
-    n_init = rr_src_ufl(x, y, "n", cfg) / sigma_cs_over_R
-    T_init = rr_src_ufl(x, y, "T", cfg) / (sigma_cs_over_R * 2 / 3)
 
     r = sqrt(x * x + y * y)
-    Ls = cfg["normalised"]["Ls"]
-    rs = cfg["normalised"]["rs"]
+    Ls = norm_soft["Ls"]
+    rs = norm_soft["rs"]
     rn = (r - rs) / Ls
-    rsoft = sqrt(x * x + y * y + 1e-6)
+    rsoft = sqrt(x * x + y * y + 1e-2)
     w_init = (
         3
-        * cfg["normalised"][f"S0T"]
+        * norm_soft[f"S0T"]
         / 2
         / (sigma_cs_over_R * 2 / 3)
         * ((2 * tanh(rn) / cosh(rn) ** 2) / Ls**2 - 1 / cosh(rn) ** 2 / rsoft / Ls)
