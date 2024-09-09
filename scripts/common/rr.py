@@ -1,6 +1,6 @@
 from .io import read_yaml_config, set_default_param
 import math
-from firedrake import Function, sqrt, tanh
+from firedrake import Constant, cosh, Function, sqrt, tanh
 
 
 def _normalise(cfg):
@@ -106,6 +106,7 @@ def _process_params(cfg):
     set_default_param(model_cfg, "do_streamline_upwinding", True)
     set_default_param(model_cfg, "Ls_boost", 1.0)
     set_default_param(model_cfg, "n_init", 1e18)
+    set_default_param(model_cfg, "start_from_steady_state", True)
     set_default_param(model_cfg, "T_init", 6.0)
 
     # Set phys defaults
@@ -198,9 +199,33 @@ def read_rr_config(fname):
     )
 
 
-def rr_src_term(fspace, x, y, var, cfg):
+def rr_steady_state(x, y, cfg):
+    sigma_cs_over_R = Constant(
+        cfg["normalised"]["sigma"] * cfg["normalised"]["c_s0"] / cfg["normalised"]["R"]
+    )
+    n_init = rr_src_ufl(x, y, "n", cfg) / sigma_cs_over_R
+    T_init = rr_src_ufl(x, y, "T", cfg) / (sigma_cs_over_R * 2 / 3)
+
+    r = sqrt(x * x + y * y)
+    Ls = cfg["normalised"]["Ls"]
+    rs = cfg["normalised"]["rs"]
+    rn = (r - rs) / Ls
+    rsoft = sqrt(x * x + y * y + 1e-6)
+    w_init = (
+        3
+        * cfg["normalised"][f"S0T"]
+        / 2
+        / (sigma_cs_over_R * 2 / 3)
+        * ((2 * tanh(rn) / cosh(rn) ** 2) / Ls**2 - 1 / cosh(rn) ** 2 / rsoft / Ls)
+    )
+    # phi gets calculated before the first step, but it should be:
+    phi_init = 3 * T_init
+    return n_init, T_init, w_init
+
+
+def rr_src_ufl(x, y, var, cfg):
     """
-    Assemble a source term function on space [fspace] for variable [var],
+    Get UFL representing a source term for variable [var],
     fetching corresponding scaling params from [cfg] and evaluating a
     tanh function over mesh coords [x],[y]
     """
@@ -208,6 +233,15 @@ def rr_src_term(fspace, x, y, var, cfg):
     fac = cfg["normalised"][f"S0{var}"]
     Ls = cfg["normalised"]["Ls"]
     rs = cfg["normalised"]["rs"]
+    return fac * (1 - tanh((r - rs) / Ls)) / 2
+
+
+def rr_src_term(fspace, x, y, var, cfg):
+    """
+    Assemble a source term function on space [fspace] for variable [var],
+    fetching corresponding scaling params from [cfg] and evaluating a
+    tanh function over mesh coords [x],[y]
+    """
     func = Function(fspace, name=f"{var}_src")
-    func.interpolate(fac * (1 - tanh((r - rs) / Ls)) / 2)
+    func.interpolate(rr_src_ufl(x, y, var, cfg))
     return func

@@ -2,7 +2,6 @@ from firedrake import (
     as_vector,
     Constant,
     DirichletBC,
-    div,
     dot,
     dx,
     exp,
@@ -22,7 +21,7 @@ from firedrake import (
     VTKFile,
 )
 
-from common import read_rr_config, rr_src_term, set_up_mesh
+from common import read_rr_config, rr_src_term, rr_steady_state, set_up_mesh
 from irksome import Dt, GaussLegendre, TimeStepper
 import os.path
 from pyop2.mpi import COMM_WORLD
@@ -178,11 +177,16 @@ def rogers_ricci2D():
     dt = Constant(time_cfg["t_end"] / time_cfg["num_steps"])
 
     # Set ICs
-    norm_cfg = cfg["normalised"]
-    time_evo_funcs.sub(subspace_indices["n"]).interpolate(norm_cfg["n_init"])
-    time_evo_funcs.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
-    time_evo_funcs.sub(subspace_indices["w"]).interpolate(0.0)
-    phi.interpolate(0.0)
+    if cfg["model"]["start_from_steady_state"]:
+        n_init, T_init, w_init = rr_steady_state(x, y, cfg)
+    else:
+        n_init = cfg["normalised"]["n_init"]
+        T_init = cfg["normalised"]["T_init"]
+        w_init = 0.0
+
+    time_evo_funcs.sub(subspace_indices["n"]).interpolate(n_init)
+    time_evo_funcs.sub(subspace_indices["T"]).interpolate(T_init)
+    time_evo_funcs.sub(subspace_indices["w"]).interpolate(w_init)
 
     stepper = nl_solve_setup(F, t, dt, time_evo_funcs, cfg)
 

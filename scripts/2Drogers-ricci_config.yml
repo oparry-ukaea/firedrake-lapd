@@ -4,6 +4,7 @@ mesh:
   ny: 64
 model:
   do_streamline_upwinding: True
+  start_from_steady_state: False
   n_init: 2.0e+14
   S0n_fac: 0.03
   S0T_fac: 0.03
