@@ -95,10 +95,8 @@ def phi_solve_setup(phi_space, phi, w, cfg):
     return LinearVariationalSolver(phi_problem, solver_parameters=solver_params)
 
 
-def poisson_bracket(f, phi, B):
-    one_over_B = Constant(1 / B)
-    driftvel = as_vector([grad(phi)[1], -grad(phi)[0]])
-    return one_over_B * div(f * driftvel)
+def poisson_bracket(f, phi):
+    return phi.dx(0) * f.dx(1) - phi.dx(1) * f.dx(0)
 
 
 def rogers_ricci2D():
@@ -149,10 +147,11 @@ def rogers_ricci2D():
     sigma_cs_over_R = Constant(
         cfg["normalised"]["sigma"] * cfg["normalised"]["c_s0"] / cfg["normalised"]["R"]
     )
+    one_over_B = Constant(1 / cfg["normalised"]["B"])
     h_SU = cfg["mesh"]["Lx"] / cfg["mesh"]["nx"]
     n_terms = (
         Dt(n)
-        - poisson_bracket(n, phi, cfg["normalised"]["B"])
+        - one_over_B * poisson_bracket(n, phi)
         + sigma_cs_over_R * n * exp_T_term(T, phi, cfg)
         - n_src
     ) * n_test * dx + SU_term(n, n_test, phi, h_SU, cfg)
@@ -162,13 +161,13 @@ def rogers_ricci2D():
     Omega_ci = cfg["normalised"]["omega_ci"]
     w_terms = (
         Dt(w)
-        - poisson_bracket(w, phi, cfg["normalised"]["B"])
+        - one_over_B * poisson_bracket(w, phi)
         - Constant(sigma_cs_over_R * m_i * Omega_ci * Omega_ci / e)
         * (1 - exp_T_term(T, phi, cfg))
     ) * w_test * dx + SU_term(w, w_test, phi, h_SU, cfg)
     T_terms = (
         Dt(T)
-        - poisson_bracket(T, phi, cfg["normalised"]["B"])
+        - one_over_B * poisson_bracket(T, phi)
         + Constant(sigma_cs_over_R * 2 / 3)
         * T
         * (1.71 * exp_T_term(T, phi, cfg) - 0.71)
