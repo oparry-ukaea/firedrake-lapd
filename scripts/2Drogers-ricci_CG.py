@@ -135,10 +135,6 @@ def rogers_ricci2D():
     n_src = rr_src_term(n_space, x, y, "n", cfg)
     T_src = rr_src_term(T_space, x, y, "T", cfg)
 
-    # # Check the source functions look ok
-    # src_outfile = VTKFile(f"2Dsrc_funcs.pvd")
-    # src_outfile.write(n_src, T_src)
-
     phi_solver = phi_solve_setup(phi_space, phi, w, cfg)
 
     # Assemble variational problem
