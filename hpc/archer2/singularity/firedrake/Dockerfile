@@ -28,7 +28,8 @@ RUN bash -c 'python3 firedrake-install \
     --mpicxx=$MPICH_DIR/mpicxx \
     --mpif90=$MPICH_DIR/mpif90 \ 
     --mpiexec=$MPICH_DIR/mpiexec \
-    --package-branch firedrake ${FIREDRAKE_BRANCH}'
+    --package-branch firedrake ${FIREDRAKE_BRANCH} \
+    --pip-install pyyaml'
 
 RUN bash -c '. /home/firedrake/firedrake/bin/activate; \
     firedrake-clean'
