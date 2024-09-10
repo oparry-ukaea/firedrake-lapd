@@ -214,8 +214,9 @@ def rogers_ricci2D():
 
     PETSc.Sys.Print("\nTimestep loop:")
     step = 0
+
+    twall_last_info = time.time()
     while float(t) < float(t_end):
-        it_start = time.time()
         if (float(t) + float(dt)) > t_end:
             dt.assign(t_end - float(t))
             PETSc.Sys.Print(f"  Last dt = {dt}")
@@ -232,11 +233,16 @@ def rogers_ricci2D():
 
         stepper.advance()
         t.assign(float(t) + float(dt))
-        it_end = time.time()
-        it_wall_time = it_end - it_start
         if step % cfg["time"]["info_freq"] == 0:
+            dtwall_last_info = time.time() - twall_last_info
+            twall_last_info = time.time()
+            last_info_step = step + 1 - cfg["time"]["info_freq"]
+            if cfg["time"]["info_freq"] == 1 or last_info_step < 0:
+                iters_str = f"Iter {step+1:d}"
+            else:
+                iters_str = f"Iters {last_info_step:d}-{step:d}"
             PETSc.Sys.Print(
-                f"  Iter {step+1:d}/{time_cfg['num_steps']:d} took {it_wall_time:.5g} s"
+                f"  {iters_str}(/{time_cfg['num_steps']:d}) took {dtwall_last_info:.5g} s"
             )
             PETSc.Sys.Print(f"t = {float(t):.5g}")
         step += 1
