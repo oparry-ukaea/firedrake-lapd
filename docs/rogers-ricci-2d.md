@@ -2,6 +2,8 @@
 
 Model based on the **2D** finite difference implementation described in "*Low-frequency turbulence in a linear magnetized plasma*", B.N. Rogers and P. Ricci, PRL **104**, 225002, 2010 ([link](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.104.225002)); see equations 5-7.
 
+Script: [2Drogers-ricci.py](../scripts/2Drogers-ricci.py)
+
 ## Equations
 
 In SI units:
@@ -112,20 +114,17 @@ This system can be be obtained by applying the normalisation factors in the tabl
 Based on Fig 4. of Rogers & Ricci, the simulation time for the 3D version might be $\sim 12$ in normalised units (= $500~\mu$s), but it's not clear if the full duration is being shown. 
 $500~\mu$s doesn't seem enough time for anything interesting to happen - we (arbitrarily) choose to run for twenty times longer - $10~$ms.
 
-## CG version
+## Weak Forms
 
-Script: [2Drogers-ricci_CG.py](../scripts/2Drogers-ricci_CG.py)
-
-### Weak Form
+### CG version
 
 Equations 1-5 are discretised over a domain $\Omega$ using a continuous Galerkin formulation.
 The functions $n$, $T$ and $\omega$, and respective test functions $v_1$, $v_2$, $v_3$ live in separate CG function spaces ($V_1$ - $V_3$) which need not be of the same polynomial order.
 
 The weak form of the equations, below are written using the shorthand $\left< f(n), v_1 \right> \equiv \int_\Omega f(n) v_1 d\mathbf{x}$ to indicate the standard process of multiplying terms by a test function and integrating over the domain. In practice we look for a solution in the combined function space $V=V_1\times V_2\times V_3$ where
 
-ToDo: Add weak form here
+ToDo: Add CG weak form.
 
-<!-- $$
-\begin{aligned}
-\end{aligned}
-$$ -->
+### DG version
+
+ToDo: Add DG weak form.
