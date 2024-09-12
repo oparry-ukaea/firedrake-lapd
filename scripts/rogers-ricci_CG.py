@@ -160,7 +160,7 @@ def rogers_ricci():
 
     # h factor for streamline-upwinding
     norm_cfg = cfg["normalised"]
-    do_SU = cfg["model"]["do_streamline_upwinding"]
+    do_SU = cfg["numerics"]["do_streamline_upwinding"]
     if do_SU:
         h_long = norm_cfg["dz"]
 
