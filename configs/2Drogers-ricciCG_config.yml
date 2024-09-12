@@ -10,6 +10,7 @@ model:
   T_init: 6.0e-4
   Ls_boost: 1.0
 numerics:
+  discretisation: CG
   do_streamline_upwinding: True
 physical:
   n_0: 2.0e+18
