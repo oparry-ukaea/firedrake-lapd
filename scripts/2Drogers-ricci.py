@@ -3,8 +3,10 @@ from firedrake import (
     Constant,
     DirichletBC,
     dot,
+    dS,
     dx,
     exp,
+    FacetNormal,
     Function,
     FunctionSpace,
     grad,
@@ -28,6 +30,21 @@ from pyop2.mpi import COMM_WORLD
 import time
 
 
+def drift_vel(phi, cfg):
+    one_over_B = Constant(1 / cfg["normalised"]["B"])
+    return as_vector([one_over_B * grad(phi)[1], -one_over_B * grad(phi)[0]])
+
+
+def DG_flux_term(tri, test, phi, mesh, cfg):
+    vExB = drift_vel(phi, cfg)
+    norms = FacetNormal(mesh)
+    vExB_n = 0.5 * (dot(vExB, norms) + abs(dot(vExB, norms)))
+    return (
+        vExB_n("-") * (tri("-") - tri("+")) * test("-") * dS
+        + vExB_n("+") * (tri("+") - tri("-")) * test("+") * dS
+    )
+
+
 def exp_T_term(T, phi, cfg, eps=1e-2):
     e = Constant(cfg["normalised"]["e"])
     Lambda = Constant(cfg["physical"]["Lambda"])
@@ -35,8 +52,7 @@ def exp_T_term(T, phi, cfg, eps=1e-2):
 
 
 def SU_term(tri, test, phi, h, cfg, eps=1e-2):
-    one_over_B = Constant(1 / cfg["normalised"]["B"])
-    driftvel = as_vector([one_over_B * grad(phi)[1], -one_over_B * grad(phi)[0]])
+    driftvel = drift_vel(phi, cfg)
     return (
         0.5
         * h
@@ -108,9 +124,10 @@ def rogers_ricci2D():
     x, y = SpatialCoordinate(mesh)
 
     # Function spaces
-    n_space = FunctionSpace(mesh, "CG", 1)  # n
-    w_space = FunctionSpace(mesh, "CG", 1)  # w
-    T_space = FunctionSpace(mesh, "CG", 1)  # T
+    DG_or_CG = cfg["numerics"]["discretisation"]
+    n_space = FunctionSpace(mesh, DG_or_CG, 1)  # n
+    w_space = FunctionSpace(mesh, DG_or_CG, 1)  # w
+    T_space = FunctionSpace(mesh, DG_or_CG, 1)  # T
     phi_space = FunctionSpace(mesh, "CG", 1)  # phi
 
     # Functions (combine time-evolved function spaces to facilitate interaction with Irksome)
@@ -144,6 +161,8 @@ def rogers_ricci2D():
     )
     one_over_B = Constant(1 / cfg["normalised"]["B"])
     h_SU = cfg["mesh"]["Lx"] / cfg["mesh"]["nx"]
+    isDG = cfg["numerics"]["discretisation"] == "DG"
+
     n_terms = (
         (
             Dt(n)
@@ -154,7 +173,9 @@ def rogers_ricci2D():
         * n_test
         * dx
     )
-    if cfg["numerics"]["do_streamline_upwinding"]:
+    if isDG:
+        n_terms += DG_flux_term(n, n_test, phi, mesh, cfg)
+    elif cfg["numerics"]["do_streamline_upwinding"]:
         n_terms += SU_term(n, n_test, phi, h_SU, cfg)
 
     e = cfg["normalised"]["e"]
@@ -170,7 +191,9 @@ def rogers_ricci2D():
         * w_test
         * dx
     )
-    if cfg["numerics"]["do_streamline_upwinding"]:
+    if isDG:
+        w_terms += DG_flux_term(w, w_test, phi, mesh, cfg)
+    elif cfg["numerics"]["do_streamline_upwinding"]:
         w_terms += SU_term(w, w_test, phi, h_SU, cfg)
 
     T_terms = (
@@ -185,7 +208,9 @@ def rogers_ricci2D():
         * T_test
         * dx
     )
-    if cfg["numerics"]["do_streamline_upwinding"]:
+    if isDG:
+        T_terms += DG_flux_term(T, T_test, phi, mesh, cfg)
+    elif cfg["numerics"]["do_streamline_upwinding"]:
         T_terms += SU_term(T, T_test, phi, h_SU, cfg)
 
     F = n_terms + w_terms + T_terms

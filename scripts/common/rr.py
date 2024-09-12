@@ -1,6 +1,6 @@
 from .io import read_yaml_config, set_default_param
 import math
-from firedrake import Constant, cosh, Function, sqrt, tanh
+from firedrake import Constant, cosh, Function, PETSc, sqrt, tanh
 
 
 def _normalise(cfg):
@@ -79,6 +79,12 @@ def _normalise(cfg):
         cfg["normalised"]["u_ref"] = 1.0 * cfg["normalised"]["c_s0"]
 
 
+def overrule_param_val(d, k, new_val, condition, msg):
+    if condition:
+        PETSc.Sys.Print(msg)
+        d[k] = new_val
+
+
 def _process_params(cfg):
     """
     Set some default parameter values and add derived parameters
@@ -110,7 +116,20 @@ def _process_params(cfg):
 
     # Set numerics defaults
     num_cfg = cfg["numerics"]
+    set_default_param(num_cfg, "discretisation", "CG")
     set_default_param(num_cfg, "do_streamline_upwinding", True)
+    assert cfg["numerics"]["discretisation"] in [
+        "CG",
+        "DG",
+    ], "Invalid discretisation type was set"
+    if cfg["numerics"]["do_streamline_upwinding"]:
+        overrule_param_val(
+            cfg["numerics"],
+            "do_streamline_upwinding",
+            False,
+            cfg["numerics"]["discretisation"] == "DG",
+            "Using DG: Ignoring do_streamline_upwinding=True",
+        )
 
     # Set phys defaults
     phys_cfg = cfg["physical"]
