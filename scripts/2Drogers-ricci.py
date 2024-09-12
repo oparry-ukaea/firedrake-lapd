@@ -95,7 +95,7 @@ def phi_solve_setup(phi_space, phi, w, cfg):
     Rphi = Constant(rhs_fac) * w * phi_test * dx
 
     # D0 on all boundaries
-    if cfg["mesh"]["type"] in ["cuboid", "rectangle"]:
+    if cfg["mesh"]["type"] in ["circle", "cuboid", "rectangle"]:
         bdy_lbl_all = "on_boundary"
     elif cfg["mesh"]["type"] == "cylinder":
         bdy_lbl_all = ("on_boundary", "top", "bottom")

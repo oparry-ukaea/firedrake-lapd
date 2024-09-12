@@ -35,11 +35,9 @@ def _normalise(cfg):
     # Space norm
     mesh["Lz"] = mesh["Lz"] * norm["Lpar"]
     mesh["zmin"] = mesh["zmin"] * norm["Lpar"]
-    if mesh["type"] in ["cuboid", "rectangle"]:
-        for key in ["Lx", "Ly", "xmin", "ymin"]:
+    for key in ["Lx", "Ly", "radius", "xmin", "ymin"]:
+        if key in mesh:
             mesh[key] = mesh[key] * norm["Ltrans"]
-    elif mesh["type"] == "cylinder":
-        mesh["radius"] = mesh["radius"] * norm["Ltrans"]
 
     # Time norm
     time = cfg["time"]
@@ -62,7 +60,7 @@ def _normalise(cfg):
         T_init=model["T_init"] * norm["T"],
     )
     cfg["normalised"]["B"] = phys["B"] * norm["mass"] / norm["time"] / norm["charge"]
-    if mesh["type"] == "rectangle":
+    if mesh["type"] in ["circle", "rectangle"]:
         cfg["normalised"]["R"] = phys["R"] * norm["Ltrans"]
         # Dimensionless, but included here for consistency
         cfg["normalised"]["sigma"] = phys["sigma"] * norm["Ltrans"] / norm["Lpar"]
@@ -154,13 +152,15 @@ def _process_params(cfg):
         set_default_param(mesh_cfg, "nx", 1024)
         set_default_param(mesh_cfg, "ny", 1024)
         set_default_param(mesh_cfg, "use_hex", True)
+    elif mesh_type == "circle":
+        mesh_cfg["nx"] = 128
     elif mesh_type == "cylinder":
         mesh_cfg["longitudinal_axis"] = 2
         set_default_param(mesh_cfg, "ref_level", 3)
     else:
         raise ValueError(f"{mesh_type} is an invalid mesh type")
 
-    if mesh_type != "rectangle":
+    if mesh_type not in ["circle", "rectangle"]:
         set_default_param(mesh_cfg, "nz", 64)
 
     # Derived physical params
@@ -169,7 +169,7 @@ def _process_params(cfg):
     phys_cfg["rho_s0"] = phys_cfg["c_s0"] / phys_cfg["omega_ci"]
     phys_cfg["c_s0_over_R"] = phys_cfg["c_s0"] / phys_cfg["R"] / phys_cfg["Lz"]
     phys_cfg["L"] = 100 * phys_cfg["rho_s0"]
-    if mesh_type == "rectangle":
+    if mesh_type in ["circle", "rectangle"]:
         phys_cfg["sigma"] = 1.5 * phys_cfg["R"] / phys_cfg["Lz"]
     else:
         phys_cfg["sigma_par"] = (
@@ -185,7 +185,7 @@ def _process_params(cfg):
     # Derived mesh params
     mesh_cfg["Lz"] = phys_cfg["Lz"]
     mesh_cfg["zmin"] = -phys_cfg["Lz"] / 2
-    if mesh_cfg["type"] in ["cuboid", "rectangle"]:
+    if mesh_cfg["type"] in ["circle", "cuboid", "rectangle"]:
         mesh_cfg["Lx"] = phys_cfg["L"]
         mesh_cfg["Ly"] = phys_cfg["L"]
         mesh_cfg["xmin"] = -phys_cfg["L"] / 2

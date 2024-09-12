@@ -1,5 +1,6 @@
-from firedrake import ExtrudedMesh, mesh, RectangleMesh, TensorBoxMesh, ufl
+from firedrake import ExtrudedMesh, mesh, Mesh, RectangleMesh, TensorBoxMesh, ufl
 import numpy as np
+import os.path
 from pyop2.mpi import COMM_WORLD
 from firedrake import PETSc
 from firedrake.cython import dmcommon
@@ -20,6 +21,10 @@ def set_up_mesh(opts, name="no_name_set"):
                 quadrilateral=True,
                 name=name,
             )
+        elif mesh_type == "circle":
+            mesh = Mesh(os.path.join(opts["root_dir"], "meshes/test_circle.msh"))
+            mesh.coordinates.dat.data[:, 0] -= opts["mesh"]["Lx"] / 2
+            mesh.coordinates.dat.data[:, 1] -= opts["mesh"]["Ly"] / 2
         elif mesh_type == "cuboid":
             mesh = BoxMesh(
                 mesh_opts["nx"],
