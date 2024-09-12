@@ -32,7 +32,7 @@ import time
 
 def drift_vel(phi, cfg):
     one_over_B = Constant(1 / cfg["normalised"]["B"])
-    return as_vector([one_over_B * grad(phi)[1], -one_over_B * grad(phi)[0]])
+    return as_vector([-one_over_B * grad(phi)[1], one_over_B * grad(phi)[0]])
 
 
 def DG_flux_term(tri, test, phi, mesh, cfg):
