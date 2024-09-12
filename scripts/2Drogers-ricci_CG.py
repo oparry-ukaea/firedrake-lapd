@@ -145,29 +145,48 @@ def rogers_ricci2D():
     one_over_B = Constant(1 / cfg["normalised"]["B"])
     h_SU = cfg["mesh"]["Lx"] / cfg["mesh"]["nx"]
     n_terms = (
-        Dt(n)
-        - one_over_B * poisson_bracket(n, phi)
-        + sigma_cs_over_R * n * exp_T_term(T, phi, cfg)
-        - n_src
-    ) * n_test * dx + SU_term(n, n_test, phi, h_SU, cfg)
+        (
+            Dt(n)
+            - one_over_B * poisson_bracket(n, phi)
+            + sigma_cs_over_R * n * exp_T_term(T, phi, cfg)
+            - n_src
+        )
+        * n_test
+        * dx
+    )
+    if cfg["numerics"]["do_streamline_upwinding"]:
+        n_terms += SU_term(n, n_test, phi, h_SU, cfg)
 
     e = cfg["normalised"]["e"]
     m_i = cfg["normalised"]["m_i"]
     Omega_ci = cfg["normalised"]["omega_ci"]
     w_terms = (
-        Dt(w)
-        - one_over_B * poisson_bracket(w, phi)
-        - Constant(sigma_cs_over_R * m_i * Omega_ci * Omega_ci / e)
-        * (1 - exp_T_term(T, phi, cfg))
-    ) * w_test * dx + SU_term(w, w_test, phi, h_SU, cfg)
+        (
+            Dt(w)
+            - one_over_B * poisson_bracket(w, phi)
+            - Constant(sigma_cs_over_R * m_i * Omega_ci * Omega_ci / e)
+            * (1 - exp_T_term(T, phi, cfg))
+        )
+        * w_test
+        * dx
+    )
+    if cfg["numerics"]["do_streamline_upwinding"]:
+        w_terms += SU_term(w, w_test, phi, h_SU, cfg)
+
     T_terms = (
-        Dt(T)
-        - one_over_B * poisson_bracket(T, phi)
-        + Constant(sigma_cs_over_R * 2 / 3)
-        * T
-        * (1.71 * exp_T_term(T, phi, cfg) - 0.71)
-        - T_src
-    ) * T_test * dx + SU_term(T, T_test, phi, h_SU, cfg)
+        (
+            Dt(T)
+            - one_over_B * poisson_bracket(T, phi)
+            + Constant(sigma_cs_over_R * 2 / 3)
+            * T
+            * (1.71 * exp_T_term(T, phi, cfg) - 0.71)
+            - T_src
+        )
+        * T_test
+        * dx
+    )
+    if cfg["numerics"]["do_streamline_upwinding"]:
+        T_terms += SU_term(T, T_test, phi, h_SU, cfg)
 
     F = n_terms + w_terms + T_terms
 
