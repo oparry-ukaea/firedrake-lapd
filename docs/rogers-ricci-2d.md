@@ -111,8 +111,8 @@ This system can be be obtained by applying the normalisation factors in the tabl
 
 #### Simulation time
 
-Based on Fig 4. of Rogers & Ricci, the simulation time for the 3D version might be $\sim 12$ in normalised units (= $500~\mu$s), but it's not clear if the full duration is being shown. 
-$500~\mu$s doesn't seem enough time for anything interesting to happen - we (arbitrarily) choose to run for twenty times longer - $10~$ms.
+Based on Fig 4. of Rogers & Ricci, the simulation time for the 3D version might be $\sim 12$ in normalised units (= $500~{\rm{\mu}s}$), but it's not clear if the full duration is being shown. 
+$500~{\rm{\mu}s}$ doesn't seem enough time for anything interesting to happen - we (arbitrarily) choose to run for twenty times longer - $10~{\rm ms}$.
 
 ## Weak Forms
 
