@@ -103,11 +103,14 @@ def _process_params(cfg):
     model_cfg = cfg["model"]
     set_default_param(model_cfg, "is_isothermal", False)
     set_default_param(model_cfg, "coulomb_fac_enabled", False)
-    set_default_param(model_cfg, "do_streamline_upwinding", True)
     set_default_param(model_cfg, "Ls_boost", 1.0)
     set_default_param(model_cfg, "n_init", 1e18)
     set_default_param(model_cfg, "start_from_steady_state", True)
     set_default_param(model_cfg, "T_init", 6.0)
+
+    # Set numerics defaults
+    num_cfg = cfg["numerics"]
+    set_default_param(num_cfg, "do_streamline_upwinding", True)
 
     # Set phys defaults
     phys_cfg = cfg["physical"]
