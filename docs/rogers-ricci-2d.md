@@ -132,7 +132,7 @@ ToDo: Add CG weak form.
 
 <figure>
   <img src="media/rr2D_64x64_CG.gif" width="600">
-  <figcaption>Temperature in the CG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
+  <figcaption>Temperature (normalised units) in the CG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
 </figure>
 
 ### DG version
@@ -145,5 +145,5 @@ ToDo: Add DG weak form.
 
 <figure>
   <img src="media/rr2D_64x64_DG.gif" width="600">
-  <figcaption>Temperature in the DG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
+  <figcaption>Temperature (normalised units) in the DG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
 </figure>
