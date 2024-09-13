@@ -1,12 +1,8 @@
 from firedrake import (
-    as_vector,
     Constant,
     DirichletBC,
-    dot,
-    dS,
     dx,
     exp,
-    FacetNormal,
     Function,
     FunctionSpace,
     grad,
@@ -23,44 +19,25 @@ from firedrake import (
     VTKFile,
 )
 
-from common import read_rr_config, rr_src_term, rr_steady_state, set_up_mesh
+from common import (
+    poisson_bracket,
+    read_rr_config,
+    rr_DG_upwind_term,
+    rr_src_term,
+    rr_SU_term,
+    rr_steady_state,
+    set_up_mesh,
+)
 from irksome import Dt, GaussLegendre, TimeStepper
 import os.path
 from pyop2.mpi import COMM_WORLD
 import time
 
 
-def drift_vel(phi, cfg):
-    one_over_B = Constant(1 / cfg["normalised"]["B"])
-    return as_vector([-one_over_B * grad(phi)[1], one_over_B * grad(phi)[0]])
-
-
-def DG_flux_term(tri, test, phi, mesh, cfg):
-    vExB = drift_vel(phi, cfg)
-    norms = FacetNormal(mesh)
-    vExB_n = 0.5 * (dot(vExB, norms) + abs(dot(vExB, norms)))
-    return (
-        vExB_n("-") * (tri("-") - tri("+")) * test("-") * dS
-        + vExB_n("+") * (tri("+") - tri("-")) * test("+") * dS
-    )
-
-
 def exp_T_term(T, phi, cfg, eps=1e-2):
     e = Constant(cfg["normalised"]["e"])
     Lambda = Constant(cfg["physical"]["Lambda"])
     return exp(Lambda - e * phi / sqrt(T * T + eps * eps))
-
-
-def SU_term(tri, test, phi, h, cfg, eps=1e-2):
-    driftvel = drift_vel(phi, cfg)
-    return (
-        0.5
-        * h
-        * (dot(driftvel, grad(tri)))
-        * dot(driftvel, grad(test))
-        * (1 / sqrt((driftvel[0]) ** 2 + (driftvel[1]) ** 2 + eps * eps))
-        * dx
-    )
 
 
 def nl_solve_setup(F, t, dt, state, cfg):
@@ -108,10 +85,6 @@ def phi_solve_setup(phi_space, phi, w, cfg):
         "pc_factor_mat_solver_type": "mumps",
     }
     return LinearVariationalSolver(phi_problem, solver_parameters=solver_params)
-
-
-def poisson_bracket(f, phi):
-    return phi.dx(0) * f.dx(1) - phi.dx(1) * f.dx(0)
 
 
 def rogers_ricci2D():
@@ -174,9 +147,9 @@ def rogers_ricci2D():
         * dx
     )
     if isDG:
-        n_terms += DG_flux_term(n, n_test, phi, mesh, cfg)
+        n_terms += rr_DG_upwind_term(n, n_test, phi, mesh, cfg)
     elif cfg["numerics"]["do_streamline_upwinding"]:
-        n_terms += SU_term(n, n_test, phi, h_SU, cfg)
+        n_terms += rr_SU_term(n, n_test, phi, h_SU, cfg)
 
     e = cfg["normalised"]["e"]
     m_i = cfg["normalised"]["m_i"]
@@ -192,9 +165,9 @@ def rogers_ricci2D():
         * dx
     )
     if isDG:
-        w_terms += DG_flux_term(w, w_test, phi, mesh, cfg)
+        w_terms += rr_DG_upwind_term(w, w_test, phi, mesh, cfg)
     elif cfg["numerics"]["do_streamline_upwinding"]:
-        w_terms += SU_term(w, w_test, phi, h_SU, cfg)
+        w_terms += rr_SU_term(w, w_test, phi, h_SU, cfg)
 
     T_terms = (
         (
@@ -209,9 +182,9 @@ def rogers_ricci2D():
         * dx
     )
     if isDG:
-        T_terms += DG_flux_term(T, T_test, phi, mesh, cfg)
+        T_terms += rr_DG_upwind_term(T, T_test, phi, mesh, cfg)
     elif cfg["numerics"]["do_streamline_upwinding"]:
-        T_terms += SU_term(T, T_test, phi, h_SU, cfg)
+        T_terms += rr_SU_term(T, T_test, phi, h_SU, cfg)
 
     F = n_terms + w_terms + T_terms
 

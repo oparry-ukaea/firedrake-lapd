@@ -1,6 +1,19 @@
 from .io import read_yaml_config, set_default_param
 import math
-from firedrake import Constant, cosh, Function, PETSc, sqrt, tanh
+from firedrake import (
+    as_vector,
+    Constant,
+    cosh,
+    dot,
+    dS,
+    dx,
+    FacetNormal,
+    Function,
+    grad,
+    PETSc,
+    sqrt,
+    tanh,
+)
 
 
 def _normalise(cfg):
@@ -221,6 +234,45 @@ def read_rr_config(fname):
     )
 
 
+def rr_DG_upwind_term(tri, test, phi, mesh, cfg):
+    vExB = rr_ExB_vel(phi, cfg)
+    norms = FacetNormal(mesh)
+    vExB_n = 0.5 * (dot(vExB, norms) + abs(dot(vExB, norms)))
+    return (
+        vExB_n("-") * (tri("-") - tri("+")) * test("-") * dS
+        + vExB_n("+") * (tri("+") - tri("-")) * test("+") * dS
+    )
+
+
+def rr_ExB_vel(phi, cfg):
+    one_over_B = Constant(1 / cfg["normalised"]["B"])
+    return as_vector([-one_over_B * grad(phi)[1], one_over_B * grad(phi)[0]])
+
+
+def rr_src_term(fspace, x, y, var, cfg):
+    """
+    Assemble a source term function on space [fspace] for variable [var],
+    fetching corresponding scaling params from [cfg] and evaluating a
+    tanh function over mesh coords [x],[y]
+    """
+    func = Function(fspace, name=f"{var}_src")
+    func.interpolate(rr_src_ufl(x, y, var, cfg))
+    return func
+
+
+def rr_src_ufl(x, y, var, cfg):
+    """
+    Get UFL representing a source term for variable [var],
+    fetching corresponding scaling params from [cfg] and evaluating a
+    tanh function over mesh coords [x],[y]
+    """
+    r = sqrt(x * x + y * y)
+    fac = cfg["normalised"][f"S0{var}"]
+    Ls = cfg["normalised"]["Ls"]
+    rs = cfg["normalised"]["rs"]
+    return fac * (1 - tanh((r - rs) / Ls)) / 2
+
+
 def rr_steady_state(x, y, cfg):
     cfg_norm = cfg["normalised"]
 
@@ -252,25 +304,13 @@ def rr_steady_state(x, y, cfg):
     return n_init, T_init, w_init
 
 
-def rr_src_ufl(x, y, var, cfg):
-    """
-    Get UFL representing a source term for variable [var],
-    fetching corresponding scaling params from [cfg] and evaluating a
-    tanh function over mesh coords [x],[y]
-    """
-    r = sqrt(x * x + y * y)
-    fac = cfg["normalised"][f"S0{var}"]
-    Ls = cfg["normalised"]["Ls"]
-    rs = cfg["normalised"]["rs"]
-    return fac * (1 - tanh((r - rs) / Ls)) / 2
-
-
-def rr_src_term(fspace, x, y, var, cfg):
-    """
-    Assemble a source term function on space [fspace] for variable [var],
-    fetching corresponding scaling params from [cfg] and evaluating a
-    tanh function over mesh coords [x],[y]
-    """
-    func = Function(fspace, name=f"{var}_src")
-    func.interpolate(rr_src_ufl(x, y, var, cfg))
-    return func
+def rr_SU_term(tri, test, phi, h, cfg, eps=1e-2):
+    driftvel = rr_ExB_vel(phi, cfg)
+    return (
+        0.5
+        * h
+        * (dot(driftvel, grad(tri)))
+        * dot(driftvel, grad(test))
+        * (1 / sqrt((driftvel[0]) ** 2 + (driftvel[1]) ** 2 + eps * eps))
+        * dx
+    )
