@@ -1,6 +1,8 @@
-# Rogers-Ricci
+# Rogers-Ricci 2D
 
 Model based on the **2D** finite difference implementation described in "*Low-frequency turbulence in a linear magnetized plasma*", B.N. Rogers and P. Ricci, PRL **104**, 225002, 2010 ([link](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.104.225002)); see equations 5-7.
+
+Script: [2Drogers-ricci.py](../scripts/2Drogers-ricci.py)
 
 ## Equations
 
@@ -89,43 +91,45 @@ The normalised forms of the equations are:
 
 $$
 \begin{align}
-\frac{d n'}{dt'} &= -\frac{1}{24}\exp(3 - \phi'/T_e')n' + S_n'  ~~~({\bf 4}) \\
-\frac{d T_e'}{dt'} &= -\frac{1}{36}\left[1.71\exp(3 - \phi'/T_e')-0.71\right]T_e' + S_T'  ~~~({\bf 5}) \\
-\frac{d \nabla'^2\phi'}{dt'} &= \frac{1}{24}\left[1-\exp(3 - \phi'/T_e')\right] ~~~({\bf 6})\\
-\nabla'^2\phi' &= \omega ~~({\bf 7}) \\
+\frac{\partial n}{\partial t} &= 40\left[\phi,n\right] -\frac{1}{24}\exp(3 - \phi/T_e)n + S_n  ~~~({\bf 4}) \\
+\frac{\partial T_e}{\partial t} &= 40\left[\phi,T_e\right] -\frac{1}{36}\left[1.71\exp(3 - \phi/T_e)-0.71\right]T_e + S_T  ~~~({\bf 5}) \\
+\frac{\partial  \nabla^2\phi}{\partial t} &= 40\left[\phi,\nabla^2\phi\right] + \frac{1}{24}\left[1-\exp(3 - \phi/T_e)\right] ~~~({\bf 6})\\
+\nabla^2\phi &= \omega ~~({\bf 7}) \\
 \end{align}
 $$
 
 with 
 
 $$
-\begin{align}
-S_n' = S_T' &= 0.03\left\\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\\} \\
-\frac{df'}{dt'} &= \frac{\partial f'}{\partial t'} - 40\left[\phi',f'\right]' ~~~({\bf 7}) \\
-\end{align}
+\begin{equation}
+S_n = S_T = 0.03\left\\{1-\tanh[(\rho_{s0}r-r_s)/L_s]\right\\}
+\end{equation}
 $$
 
-This system can be be obtained by applying the normalisation factors in the table above and simplifying; see [here](./details/rogers-ricci-2d-normalised.md) for details.
+where $\rho_{s0}$, $r_s$ and $Ls$ have the (SI) values listed in the tables above.
+This system can be be obtained by applying the normalisation factors, then simplifying; see [here](./details/rogers-ricci-2d-normalised.md) for details. Note that the prime notation used in the derivations is dropped in the equations above for readability.
 
 #### Simulation time
 
-Based on Fig 4. of Rogers & Ricci, looks like total simulation time for the 3D version is $\sim 12$. Assume 2D is the same.
-Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0} = 500 \mu{\rm s}$ before normalisation.
+Based on Fig 4. of Rogers & Ricci, the simulation time for the 3D version might be $\sim 12$ in normalised units (= $500~{\rm{\mu}s}$), but it's not clear if the full duration is being shown. 
+$500~{\rm{\mu}s}$ doesn't seem enough time for anything interesting to happen - we (arbitrarily) choose to run for ten times longer - $5~{\rm ms}$, or  $\sim 120$ in normalised units.
 
-## CG version
+#### Decoupled density
+Note that, since the density only features in equation 4, it is effectively decoupled from the rest of system. Implementing equations 5-7 only is therefore sufficient to capture most of the interesting behaviour.
 
-Script: [2Drogers-ricci_CG.py](../scripts/2Drogers-ricci_CG.py)
+## Weak Forms
 
-### Weak Form
+### CG version
 
-Equations 1-5 are discretised over a domain $\Omega$ using a continuous Galerkin formulation.
+Equations 4-7 are discretised over a domain $\Omega$ using a continuous Galerkin formulation.
 The functions $n$, $T$ and $\omega$, and respective test functions $v_1$, $v_2$, $v_3$ live in separate CG function spaces ($V_1$ - $V_3$) which need not be of the same polynomial order.
 
 The weak form of the equations, below are written using the shorthand $\left< f(n), v_1 \right> \equiv \int_\Omega f(n) v_1 d\mathbf{x}$ to indicate the standard process of multiplying terms by a test function and integrating over the domain. In practice we look for a solution in the combined function space $V=V_1\times V_2\times V_3$ where
 
-ToDo: Add weak form here
+ToDo: Add CG weak form.
 
-<!-- $$
-\begin{aligned}
-\end{aligned}
-$$ -->
+### DG version
+
+One difference in the default DG setup (see this [config file](../configs/2Drogers-ricciDG_config.yml)) is that the value of Ls is doubled in order to soften the sharp edges of the source profiles. It should be possible to drop this modification when using a sufficiently high resolution mesh. 
+
+ToDo: Add DG weak form.

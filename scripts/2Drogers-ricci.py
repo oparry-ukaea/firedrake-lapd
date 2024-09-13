@@ -3,8 +3,10 @@ from firedrake import (
     Constant,
     DirichletBC,
     dot,
+    dS,
     dx,
     exp,
+    FacetNormal,
     Function,
     FunctionSpace,
     grad,
@@ -28,6 +30,21 @@ from pyop2.mpi import COMM_WORLD
 import time
 
 
+def drift_vel(phi, cfg):
+    one_over_B = Constant(1 / cfg["normalised"]["B"])
+    return as_vector([-one_over_B * grad(phi)[1], one_over_B * grad(phi)[0]])
+
+
+def DG_flux_term(tri, test, phi, mesh, cfg):
+    vExB = drift_vel(phi, cfg)
+    norms = FacetNormal(mesh)
+    vExB_n = 0.5 * (dot(vExB, norms) + abs(dot(vExB, norms)))
+    return (
+        vExB_n("-") * (tri("-") - tri("+")) * test("-") * dS
+        + vExB_n("+") * (tri("+") - tri("-")) * test("+") * dS
+    )
+
+
 def exp_T_term(T, phi, cfg, eps=1e-2):
     e = Constant(cfg["normalised"]["e"])
     Lambda = Constant(cfg["physical"]["Lambda"])
@@ -35,8 +52,7 @@ def exp_T_term(T, phi, cfg, eps=1e-2):
 
 
 def SU_term(tri, test, phi, h, cfg, eps=1e-2):
-    one_over_B = Constant(1 / cfg["normalised"]["B"])
-    driftvel = as_vector([one_over_B * grad(phi)[1], -one_over_B * grad(phi)[0]])
+    driftvel = drift_vel(phi, cfg)
     return (
         0.5
         * h
@@ -79,7 +95,7 @@ def phi_solve_setup(phi_space, phi, w, cfg):
     Rphi = Constant(rhs_fac) * w * phi_test * dx
 
     # D0 on all boundaries
-    if cfg["mesh"]["type"] in ["cuboid", "rectangle"]:
+    if cfg["mesh"]["type"] in ["circle", "cuboid", "rectangle"]:
         bdy_lbl_all = "on_boundary"
     elif cfg["mesh"]["type"] == "cylinder":
         bdy_lbl_all = ("on_boundary", "top", "bottom")
@@ -108,9 +124,10 @@ def rogers_ricci2D():
     x, y = SpatialCoordinate(mesh)
 
     # Function spaces
-    n_space = FunctionSpace(mesh, "CG", 1)  # n
-    w_space = FunctionSpace(mesh, "CG", 1)  # w
-    T_space = FunctionSpace(mesh, "CG", 1)  # T
+    DG_or_CG = cfg["numerics"]["discretisation"]
+    n_space = FunctionSpace(mesh, DG_or_CG, 1)  # n
+    w_space = FunctionSpace(mesh, DG_or_CG, 1)  # w
+    T_space = FunctionSpace(mesh, DG_or_CG, 1)  # T
     phi_space = FunctionSpace(mesh, "CG", 1)  # phi
 
     # Functions (combine time-evolved function spaces to facilitate interaction with Irksome)
@@ -144,30 +161,57 @@ def rogers_ricci2D():
     )
     one_over_B = Constant(1 / cfg["normalised"]["B"])
     h_SU = cfg["mesh"]["Lx"] / cfg["mesh"]["nx"]
+    isDG = cfg["numerics"]["discretisation"] == "DG"
+
     n_terms = (
-        Dt(n)
-        - one_over_B * poisson_bracket(n, phi)
-        + sigma_cs_over_R * n * exp_T_term(T, phi, cfg)
-        - n_src
-    ) * n_test * dx + SU_term(n, n_test, phi, h_SU, cfg)
+        (
+            Dt(n)
+            - one_over_B * poisson_bracket(n, phi)
+            + sigma_cs_over_R * n * exp_T_term(T, phi, cfg)
+            - n_src
+        )
+        * n_test
+        * dx
+    )
+    if isDG:
+        n_terms += DG_flux_term(n, n_test, phi, mesh, cfg)
+    elif cfg["numerics"]["do_streamline_upwinding"]:
+        n_terms += SU_term(n, n_test, phi, h_SU, cfg)
 
     e = cfg["normalised"]["e"]
     m_i = cfg["normalised"]["m_i"]
     Omega_ci = cfg["normalised"]["omega_ci"]
     w_terms = (
-        Dt(w)
-        - one_over_B * poisson_bracket(w, phi)
-        - Constant(sigma_cs_over_R * m_i * Omega_ci * Omega_ci / e)
-        * (1 - exp_T_term(T, phi, cfg))
-    ) * w_test * dx + SU_term(w, w_test, phi, h_SU, cfg)
+        (
+            Dt(w)
+            - one_over_B * poisson_bracket(w, phi)
+            - Constant(sigma_cs_over_R * m_i * Omega_ci * Omega_ci / e)
+            * (1 - exp_T_term(T, phi, cfg))
+        )
+        * w_test
+        * dx
+    )
+    if isDG:
+        w_terms += DG_flux_term(w, w_test, phi, mesh, cfg)
+    elif cfg["numerics"]["do_streamline_upwinding"]:
+        w_terms += SU_term(w, w_test, phi, h_SU, cfg)
+
     T_terms = (
-        Dt(T)
-        - one_over_B * poisson_bracket(T, phi)
-        + Constant(sigma_cs_over_R * 2 / 3)
-        * T
-        * (1.71 * exp_T_term(T, phi, cfg) - 0.71)
-        - T_src
-    ) * T_test * dx + SU_term(T, T_test, phi, h_SU, cfg)
+        (
+            Dt(T)
+            - one_over_B * poisson_bracket(T, phi)
+            + Constant(sigma_cs_over_R * 2 / 3)
+            * T
+            * (1.71 * exp_T_term(T, phi, cfg) - 0.71)
+            - T_src
+        )
+        * T_test
+        * dx
+    )
+    if isDG:
+        T_terms += DG_flux_term(T, T_test, phi, mesh, cfg)
+    elif cfg["numerics"]["do_streamline_upwinding"]:
+        T_terms += SU_term(T, T_test, phi, h_SU, cfg)
 
     F = n_terms + w_terms + T_terms
 
@@ -195,8 +239,9 @@ def rogers_ricci2D():
 
     PETSc.Sys.Print("\nTimestep loop:")
     step = 0
+
+    twall_last_info = time.time()
     while float(t) < float(t_end):
-        it_start = time.time()
         if (float(t) + float(dt)) > t_end:
             dt.assign(t_end - float(t))
             PETSc.Sys.Print(f"  Last dt = {dt}")
@@ -213,11 +258,16 @@ def rogers_ricci2D():
 
         stepper.advance()
         t.assign(float(t) + float(dt))
-        it_end = time.time()
-        it_wall_time = it_end - it_start
         if step % cfg["time"]["info_freq"] == 0:
+            dtwall_last_info = time.time() - twall_last_info
+            twall_last_info = time.time()
+            last_info_step = step + 1 - cfg["time"]["info_freq"]
+            if cfg["time"]["info_freq"] == 1 or last_info_step < 0:
+                iters_str = f"Iter {step+1:d}"
+            else:
+                iters_str = f"Iters {last_info_step:d}-{step:d}"
             PETSc.Sys.Print(
-                f"  Iter {step+1:d}/{time_cfg['num_steps']:d} took {it_wall_time:.5g} s"
+                f"  {iters_str}(/{time_cfg['num_steps']:d}) took {dtwall_last_info:.5g} s"
             )
             PETSc.Sys.Print(f"t = {float(t):.5g}")
         step += 1
