@@ -117,6 +117,22 @@ $500~{\rm{\mu}s}$ doesn't seem enough time for anything interesting to happen - 
 #### Decoupled density
 Note that, since the density only features in equation 4, it is effectively decoupled from the rest of system. Implementing equations 5-7 only is therefore sufficient to capture most of the interesting behaviour.
 
+## Example output
+
+### CG version
+
+<figure>
+  <img src="media/rr2D_64x64_CG.gif" width="600">
+  <figcaption>Temperature (normalised units) in the CG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
+</figure>
+
+### DG version
+
+<figure>
+  <img src="media/rr2D_64x64_DG.gif" width="600">
+  <figcaption>Temperature (normalised units) in the DG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
+</figure>
+
 ## Weak Forms
 
 ### CG version
