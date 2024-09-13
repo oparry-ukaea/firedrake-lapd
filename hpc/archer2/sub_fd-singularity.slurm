@@ -13,7 +13,7 @@
 
 # ===================== Options =====================
 # Script filename - **must be in $working_dir!**
-script="LAPD-like_simplified_CG.py"
+script="[SET_SCRIPT_NAME_HERE]"
 # Directory containing the singularity image
 sif_dir=[SET_IMAGE_DIR_HERE]
 # Singularity image name

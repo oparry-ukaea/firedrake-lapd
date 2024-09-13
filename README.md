@@ -7,3 +7,5 @@ This repository contains resources and scripts compiled to model the LArge Plasm
 Descriptions of the models implemented so far:
 
 [LAPD-like Simplified](./docs/simplified.md)
+
+[2D Rogers-Ricci](./docs/rogers-ricci-2d.md)
