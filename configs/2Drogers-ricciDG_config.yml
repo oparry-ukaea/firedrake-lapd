@@ -8,7 +8,7 @@ model:
   S0n_fac: 0.03
   S0T_fac: 0.03
   T_init: 6.0e-4
-  Ls_boost: 1.0
+  Ls_boost: 2.0
 numerics:
   discretisation: DG
 physical:
