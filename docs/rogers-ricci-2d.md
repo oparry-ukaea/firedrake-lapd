@@ -130,4 +130,6 @@ ToDo: Add CG weak form.
 
 ### DG version
 
+One difference in the default DG setup (see this [config file](../configs/2Drogers-ricciDG_config.yml)) is that the value of Ls is doubled in order to soften the sharp edges of the source profiles. It should be possible to drop this modification when using a sufficiently high resolution mesh. 
+
 ToDo: Add DG weak form.
