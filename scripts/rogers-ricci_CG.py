@@ -1,4 +1,4 @@
-from common import read_rr_config, rr_src_term, set_up_mesh
+from common import poisson_bracket, read_rr_config, rr_src_term, rr_SU_term, set_up_mesh
 from firedrake import (
     as_vector,
     Constant,
@@ -37,10 +37,6 @@ def su_term(h, tri, test, vel_long, vel_eps=0.001):
         )
         * dx
     )
-
-
-def poisson_bracket(f, phi, c_over_B):
-    return Constant(c_over_B) * (phi.dx(0) * f.dx(1) - phi.dx(1) * f.dx(0))
 
 
 def nl_solve_setup(F, t, dt, n_ui_ue_T_w, bcs, cfg):
@@ -161,6 +157,7 @@ def rogers_ricci():
     # h factor for streamline-upwinding
     norm_cfg = cfg["normalised"]
     do_SU = cfg["numerics"]["do_streamline_upwinding"]
+    one_over_B = Constant(1 / cfg["normalised"]["B"])
     if do_SU:
         h_long = norm_cfg["dz"]
 
@@ -168,7 +165,7 @@ def rogers_ricci():
     n_terms = (
         Dt(n) * n_test * dx
         + (grad(n * ue)[2] * n_test) * dx
-        - poisson_bracket(n, phi, norm_cfg["c_over_B"]) * n_test * dx
+        - one_over_B * poisson_bracket(n, phi) * n_test * dx
         - (n_src * n_test) * dx
     )
     if do_SU: 
@@ -176,7 +173,7 @@ def rogers_ricci():
 
     ui_terms = (
         Dt(ui) * ui_test * dx
-        - poisson_bracket(ui, phi, norm_cfg["c_over_B"]) * ui_test * dx
+        - one_over_B * poisson_bracket(ui, phi) * ui_test * dx
         + (ui * grad(ui)[2] * ui_test) * dx
         + (grad(n * T)[2] / n * ui_test) * dx
     )
@@ -189,7 +186,7 @@ def rogers_ricci():
     sigma_par = norm_cfg["sigma_par"]
     ue_terms = (
         m_e * Dt(ue) * ue_test * dx
-        - poisson_bracket(ue, phi, norm_cfg["c_over_B"]) * ue_test * dx
+        - one_over_B * poisson_bracket(ue, phi) * ue_test * dx
         + (m_e * ue * grad(ue)[2] * ue_test) * dx
         + (T / n * grad(n)[2] * ue_test) * dx
         - (charge_e * grad(phi)[2] * ue_test) * dx
@@ -204,7 +201,7 @@ def rogers_ricci():
         ue_terms += (1.71 * grad(T)[2] * ue_test) * dx
         T_terms = (
             Dt(T) * T_test * dx
-            - poisson_bracket(T, phi, norm_cfg["c_over_B"]) * T_test * dx
+            - one_over_B * poisson_bracket(T, phi) * T_test * dx
             - (2.0 / 3 * T / charge_e / n * 0.71 * grad(j_par)[2] * T_test) * dx
             + (2.0 / 3 * T * grad(ue)[2] * T_test) * dx
             + (ue * grad(T)[2] * T_test) * dx
@@ -217,7 +214,7 @@ def rogers_ricci():
     m_i = norm_cfg["m_i"]
     w_terms = (
         Dt(w) * w_test * dx
-        - poisson_bracket(w, phi, norm_cfg["c_over_B"]) * w_test * dx
+        - one_over_B * poisson_bracket(w, phi) * w_test * dx
         + (ui * grad(w)[2] * w_test) * dx
         - (m_i * Omega_ci * Omega_ci / charge_e / charge_e / n * grad(j_par)[2] * w_test) * dx
     )
