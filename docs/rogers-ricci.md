@@ -8,11 +8,11 @@ Rogers & Ricci solve the electrostatic Braginskii equations with $T_i \ll T_e$ a
 
 $$
 \begin{aligned}
-\dot{n} &= -\nabla_{\parallel}(n u_e) + S_n ~~~(1)\\
-\dot{u_i} &= -u_i\nabla_{\parallel}(u_i) - \frac{1}{m_i n} \nabla_{\parallel}(p_e)~~~(2)\\
-m_e\dot{u_e} &= -m_e u_e\nabla_{\parallel}(u_e) - \frac{T_e}{n}\nabla_{\parallel}(n) + e\nabla_{\parallel}(\phi) - 1.71\nabla_{\parallel}(T_e) + \frac{e j_\parallel}{\sigma_\parallel}~~~(3)\\
-\dot{T_e} &= \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel - \frac{2}{3}T_e\nabla_{\parallel}(u_e) - u_e\nabla_{\parallel}(T_e) + S_T~~~(4)\\
-\dot{\omega} &= -u_i\nabla_\parallel \omega + \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel~~~(5)\\
+\frac{d n}{dt} &= -\nabla_{\parallel}(n u_e) + S_n ~~~(1)\\
+\frac{d u_i}{dt} &= -u_i\nabla_{\parallel}(u_i) - \frac{1}{m_i n} \nabla_{\parallel}(p_e)~~~(2)\\
+m_e\frac{d u_e}{dt} &= -m_e u_e\nabla_{\parallel}(u_e) - \frac{T_e}{n}\nabla_{\parallel}(n) + e\nabla_{\parallel}(\phi) - 1.71\nabla_{\parallel}(T_e) + \frac{e j_\parallel}{\sigma_\parallel}~~~(3)\\
+\frac{d T_e}{dt} &= \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel - \frac{2}{3}T_e\nabla_{\parallel}(u_e) - u_e\nabla_{\parallel}(T_e) + S_T~~~(4)\\
+\frac{d \omega}{dt} &= -u_i\nabla_\parallel \omega + \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel~~~(5)\\
 \nabla_{\perp}^2 \phi &= \omega
 \end{aligned}
 $$
@@ -22,6 +22,7 @@ where
 $$
 \begin{aligned}
 u_x &\equiv V_{\parallel x} \\
+\frac{df}{dt} &= \frac{\partial f}{\partial t} - \frac{1}{B}\left[\phi,f\right] \\
 p_e &= nT_e \\
 j_\parallel &= e n (u_i-u_e) \\
 \sigma_\parallel &= \frac{e^2 n_0 R}{m_{i}c_{s0}\nu} \\
@@ -44,7 +45,7 @@ where $r = \sqrt{x^2 + y^2}$
 
 | Parameter      | Value               | Comment                                                                                                         |
 | -------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- |
-| $T_{e0}$       | 6 eV                |                                                                                                                 |
+| $T_0$          | 6 eV                |                                                                                                                 |
 | $L_z$          | 18 m                |                                                                                                                 |
 | $n_0$          | 2e18 m<sup>-3</sup> |                                                                                                                 |
 | $\nu$          | 0.03                |                                                                                                                 |
@@ -55,15 +56,15 @@ where $r = \sqrt{x^2 + y^2}$
 | R              | 0.5 m               | Approx radius of the plasma column?                                                                             |
 
 Derived values
-| Parameter          | Calculated as                   | Value                               | Comment                                           |
-| ------------------ | ------------------------------- | ----------------------------------- | ------------------------------------------------- |
-| B                  | $\Omega_{ci} m_i q_E$           | 40 mT                               |                                                   |
-| $c_{s0}$           | $\sqrt{T_{e0}/m_i}$             | 1.2e4 ms<sup>-1</sup>               |                                                   |
-| $m_e$              | $\tau m_i$                      | 2.67e-24 kg                         |                                                   |
-| $\rho_{s0}$        | $c_{s0}/\Omega{ci}$             | 1.2e-2 m                            | Paper has 1.4e-2 m ... implies $m_i\sim 3 m_p$ !? |
-| $S_{0n}$           | 0.03 $n_0 c_{s0}/R$             | 4.8e22 m<sup>-3</sup>s<sup>-1</sup> |                                                   |
-| $S_{0T}$           | 0.03 $T_{e0} c_{s0} / R$        | 4318.4 Ks<sup>-1</sup>              |                                                   |
-| $\sigma_\parallel$ | $e^2 n_0 R / (0.03 m_i c_{s0})$ | 10676.0                             |                                                   |
+| Parameter          | Calculated as                  | Value                               | Comment                                           |
+| ------------------ | ------------------------------ | ----------------------------------- | ------------------------------------------------- |
+| B                  | $\Omega_{ci} m_i q_E$          | 40 mT                               |                                                   |
+| $c_{s0}$           | $\sqrt{T_0/m_i}$               | 1.2e4 ms<sup>-1</sup>               |                                                   |
+| $m_e$              | $\tau m_i$                     | 2.67e-24 kg                         |                                                   |
+| $\rho_{s0}$        | $c_{s0}/\Omega{ci}$            | 1.2e-2 m                            | Paper has 1.4e-2 m ... implies $m_i\sim 3 m_p$ !? |
+| $S_{0n}$           | 0.03 $n_0 c_{s0}/R$            | 4.8e22 m<sup>-3</sup>s<sup>-1</sup> |                                                   |
+| $S_{0T}$           | 0.03 $T_0 c_{s0} / R$          | 4318.4 Ks<sup>-1</sup>              |                                                   |
+| $\sigma_\parallel$ | $e^2 n_0 R / (\nu m_i c_{s0})$ | 10676.0                             |                                                   |
 
 ### Other implementation details
 
@@ -75,10 +76,10 @@ Bohm BCs for velocities at the end walls ($z = \pm L_z/2$): $u_i= \pm c_s$, $u_e
 
 The mesh is a cuboid with the origin at the centre and dimensions
 
-|                    | Determined by params           | SI    | Normalised |
-| ------------------ | ------------------------------ | ----- | ---------- |
-| Parallel size      | $L_z$                          | 18 m  | 36         |
-| Perpendicular size | $\sqrt{T_{e0}/m_i}/\Omega{ci}$ | 1.2 m | 100        |
+|                    | Determined by params        | SI    | Normalised |
+| ------------------ | --------------------------- | ----- | ---------- |
+| Parallel size      | $L_z$                       | 18 m  | 36         |
+| Perpendicular size | $\sqrt{T_0/m_i}/\Omega{ci}$ | 1.2 m | 100        |
 
 By default, there are 64x64x16 tetrahedral (cuboidal), giving element sizes of
 
@@ -96,8 +97,8 @@ Normalisations follow those in Rogers & Ricci, that is:
 |                       | Normalised to |
 | --------------------- | ------------- |
 | Charge                | $e$           |
-| Electric potential    | $e/T_{e0}$    |
-| Energy                | $T_{e0}$      |
+| Electric potential    | $e/T_0$       |
+| Energy                | $T_0$         |
 | Mass<sup>*</sup>      | $1600 m_i$    |
 | Number densities      | $n_0$         |
 | Perpendicular lengths | $\rho_{s0}$   |
@@ -114,7 +115,7 @@ $$
 \frac{d u_i}{dt} &= -u_i\nabla_\parallel(u_i) - \frac{1}{n}\nabla_\parallel(n T_e) ~~({\bf 2})\\
 \frac{d u_e}{dt} &= -u_e\nabla_\parallel(u_e) - 400\frac{T_e}{n}\nabla_\parallel(n) + 400\nabla_\parallel(\phi) - 1.71\times400\nabla_\parallel(T_e) + 12 n(u_i-u_e)  ~~({\bf 3})\\
 \frac{d T_e}{dt} &= \frac{2}{3}\frac{T_e}{n}0.71\nabla_\parallel\left[n (u_i-u_e)\right] - \frac{2}{3}T_e\nabla_\parallel(u_e) - u_e\nabla_\parallel(T_e) + S_T ~~({\bf 4})\\
-\frac{d \nabla_\perp^2\phi}{dt} &= -u_i\nabla_\parallel\left(\nabla_\perp^2\phi\right) + \frac{1}{n}\nabla_\parallel\left[n (u_i-u_e)\right] ~~({\bf 5}) \\
+\frac{d \omega}{dt} &= -u_i\nabla_\parallel\omega + \frac{1}{n}\nabla_\parallel\left[n (u_i-u_e)\right] ~~({\bf 5}) \\
 \nabla_\perp^2\phi &= \omega ~~({\bf 6}) \\
 \end{align}
 $$

@@ -114,14 +114,14 @@ SI equation: $\frac{d \nabla_\perp^2\phi}{dt} = -u_i\nabla_\parallel\left(\nabla
 
 $$
 \begin{align}
-\frac{d \nabla_\perp'^2\phi'}{dt'}\left(\frac{1}{\rho_{s0}}\right)^2\frac{T_0}{e}\frac{c_s}{R} &= -\frac{c_s}{R}\left(\frac{1}{\rho_{s0}}\right)^2\frac{T_0}{e}u_i'\nabla_\parallel'\left(\nabla_\perp'^2\phi'\right) + \frac{m_i \Omega_{ci}^2}{e^2 n_0 n' R}\nabla_\parallel'\left[e n_0 c_s n' (u_i'-u_e')\right] \\
+\left(\frac{1}{\rho_{s0}}\right)^2\frac{T_0}{e}\frac{c_s}{R}\frac{d \nabla_\perp'^2\phi'}{dt'} &= -\frac{c_s}{R}\left(\frac{1}{\rho_{s0}}\right)^2\frac{T_0}{e}u_i'\nabla_\parallel'\left(\nabla_\perp'^2\phi'\right) + \frac{m_i \Omega_{ci}^2}{e^2 n_0 n' R}\nabla_\parallel'\left[e n_0 c_s n' (u_i'-u_e')\right] \\
 \frac{d \nabla_\perp'^2\phi'}{dt'} &= -u_i'\nabla_\parallel'\left(\nabla_\perp'^2\phi'\right) + \frac{\rho_{s0}^2 e R}{c_s T_0}\frac{m_i \Omega_{ci}^2}{e^2 n_0 n' R}\nabla_\parallel'\left[e n_0 c_s n' (u_i'-u_e')\right] \\
 \frac{d \nabla_\perp'^2\phi'}{dt'} &= -u_i'\nabla_\parallel'\left(\nabla_\perp'^2\phi'\right) + \frac{\rho_{s0}^2}{T_0}\frac{m_i \Omega_{ci}^2}{n'}\nabla_\parallel'\left[n' (u_i'-u_e')\right] \\
-\frac{d \nabla_\perp'^2\phi'}{dt'} &= -u_i'\nabla_\parallel'\left(\nabla_\perp'^2\phi'\right) + \frac{1}{n'}\nabla_\parallel'\left[n' (u_i'-u_e')\right] ~~({\bf 5}) \\
+\frac{d \omega'}{dt'} &= -u_i'\nabla_\parallel'\omega' + \frac{1}{n'}\nabla_\parallel'\left[n' (u_i'-u_e')\right] ~~({\bf 5}) \\
 \end{align}
 $$
 
-Where  $c_s^2=T_0/m_i=\rho_{s0}^2\Omega_{ci}^2$ was used to obtain the final line.
+Where  $c_s^2=T_0/m_i=\rho_{s0}^2\Omega_{ci}^2$ was used to obtain the penultimate line.
 
 ### Potential
 
