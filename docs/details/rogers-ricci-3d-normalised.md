@@ -34,8 +34,8 @@ Let
 $$
 \begin{align}
 S_n' &= S_n \frac{R}{n_0 c_s}\\
-&= 0.03\left\{1-\tanh[(r-r_s)/L_s]\right\} \\
-&= 0.03\left\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\} \\
+&= 0.03\left\\{1-\tanh[(r-r_s)/L_s]\right\\} \\
+&= 0.03\left\\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\\} \\
 \end{align}
 $$
 
@@ -92,8 +92,8 @@ Let
 $$
 \begin{align}
 S_T' &= S_T \frac{R}{T_0 c_s}\\
-&= 0.03\left\{1-\tanh[(r-r_s)/L_s]\right\} \\
-&= 0.03\left\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\} \\
+&= 0.03\left\\{1-\tanh[(r-r_s)/L_s]\right\\} \\
+&= 0.03\left\\{1-\tanh[(\rho_{s0}r'-r_s)/L_s]\right\\} \\
 \end{align}
 $$
 
