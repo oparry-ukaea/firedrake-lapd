@@ -19,6 +19,26 @@ from firedrake import (
     TestFunction,
     TrialFunction,
 )
+from irksome import GaussLegendre, TimeStepper
+
+
+def nl_solve_setup(F, t, dt, state, cfg, bcs=None, **solver_param_overrides):
+    butcher_tableau = GaussLegendre(cfg["time"]["order"])
+    solver_params = {
+        "snes_max_it": 100,
+        "snes_linesearch_type": "l2",
+        "ksp_type": "preonly",
+        "pc_type": "lu",
+        "mat_type": "aij",
+        "pc_factor_mat_solver_type": "mumps",
+    }
+    if cfg["debug"]:
+        solver_params["ksp_monitor"] = None
+        solver_params["snes_monitor"] = None
+    solver_params.update(solver_param_overrides)
+    return TimeStepper(
+        F, butcher_tableau, t, dt, state, bcs=bcs, solver_parameters=solver_params
+    )
 
 
 def _normalise(cfg):

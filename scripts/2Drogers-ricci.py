@@ -13,6 +13,7 @@ from firedrake import (
 )
 
 from common import (
+    nl_solve_setup,
     phi_solve_setup,
     poisson_bracket,
     read_rr_config,
@@ -22,7 +23,7 @@ from common import (
     rr_steady_state,
     set_up_mesh,
 )
-from irksome import Dt, GaussLegendre, TimeStepper
+from irksome import Dt
 import os.path
 from pyop2.mpi import COMM_WORLD
 import time
@@ -32,23 +33,6 @@ def exp_T_term(T, phi, cfg, eps=1e-2):
     e = Constant(cfg["normalised"]["e"])
     Lambda = Constant(cfg["physical"]["Lambda"])
     return exp(Lambda - e * phi / sqrt(T * T + eps * eps))
-
-
-def nl_solve_setup(F, t, dt, state, cfg):
-    butcher_tableau = GaussLegendre(cfg["time"]["order"])
-    nl_solver_params = {
-        "snes_max_it": 100,
-        "snes_linesearch_type": "l2",
-        "ksp_type": "preonly",
-        "pc_type": "lu",
-        "mat_type": "aij",
-        "pc_factor_mat_solver_type": "mumps",
-    }
-    if cfg["debug"]:
-        nl_solver_params["ksp_monitor"] = None
-        nl_solver_params["snes_monitor"] = None
-
-    return TimeStepper(F, butcher_tableau, t, dt, state, solver_parameters=nl_solver_params)  # fmt: skip
 
 
 def rogers_ricci2D():

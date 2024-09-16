@@ -1,4 +1,5 @@
 from common import (
+    nl_solve_setup,
     phi_solve_setup,
     poisson_bracket,
     read_rr_config,
@@ -23,7 +24,7 @@ from firedrake import (
     TestFunctions,
     VTKFile,
 )
-from irksome import Dt, GaussLegendre, TimeStepper
+from irksome import Dt
 import os.path
 from pyop2.mpi import COMM_WORLD
 import time
@@ -41,21 +42,6 @@ def su_term(h, tri, test, vel_long, vel_eps=0.001):
         )
         * dx
     )
-
-
-def nl_solve_setup(F, t, dt, n_ui_ue_T_w, bcs, cfg):
-    butcher_tableau = GaussLegendre(cfg["order"])
-    nl_solver_params = {
-        "snes_monitor": None,
-        "snes_max_it": 100,
-        "snes_linesearch_type": "l2",
-        "snes_atol": 1e-8,
-        "ksp_type": "preonly",
-        "pc_type": "lu",
-        "mat_type": "aij",
-        "pc_factor_mat_solver_type": "mumps",
-    }
-    return TimeStepper(F, butcher_tableau, t, dt, n_ui_ue_T_w, solver_parameters=nl_solver_params, bcs=bcs)  # fmt: skip
 
 
 def rogers_ricci():
@@ -234,9 +220,8 @@ def rogers_ricci():
             par_bdy_lbl_upper,
         ),
     ]
-    bcs = [*ui_bcs, *ue_bcs]
 
-    stepper = nl_solve_setup(F, t, dt, time_evo_funcs, bcs, time_cfg)
+    stepper = nl_solve_setup(F, t, dt, time_evo_funcs, cfg, bcs=[*ui_bcs, *ue_bcs])
 
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
 
