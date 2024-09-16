@@ -4,12 +4,12 @@ Model based on the finite difference implementation described in "*Low-frequency
 
 ## Equations
 
-(Electrostatic Braginskii equations with $T_i \ll T_e$ and $\beta \ll 1$)
+Rogers & Ricci solve the electrostatic Braginskii equations with $T_i \ll T_e$ and $\beta \ll 1$. Note that there is a factor of $1/m_i$ missing from the equation for ion velocity in the paper.
 
 $$
 \begin{aligned}
 \dot{n} &= -\nabla_{\parallel}(n u_e) + S_n ~~~(1)\\
-\dot{u_i} &= -u_i\nabla_{\parallel}(u_i) - \frac{1}{n} \nabla_{\parallel}(p_e)~~~(2)\\
+\dot{u_i} &= -u_i\nabla_{\parallel}(u_i) - \frac{1}{m_i n} \nabla_{\parallel}(p_e)~~~(2)\\
 m_e\dot{u_e} &= -m_e u_e\nabla_{\parallel}(u_e) - \frac{T_e}{n}\nabla_{\parallel}(n) + e\nabla_{\parallel}(\phi) - 1.71\nabla_{\parallel}(T_e) + \frac{e j_\parallel}{\sigma_\parallel}~~~(3)\\
 \dot{T_e} &= \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel - \frac{2}{3}T_e\nabla_{\parallel}(u_e) - u_e\nabla_{\parallel}(T_e) + S_T~~~(4)\\
 \dot{\omega} &= -u_i\nabla_\parallel \omega + \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel~~~(5)\\
