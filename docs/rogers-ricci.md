@@ -104,6 +104,31 @@ Normalisations follow those in Rogers & Ricci, that is:
 
 <sup>*</sup> Not stated in the paper; derived from other normalisation factors.
 
+The normalised forms of the equations are:
+
+$$
+\begin{align}
+\frac{d n}{dt} &= -\nabla_{\parallel}(n u_e) + S_n ~~({\bf 1}) \\
+\frac{d u_i}{dt} &= -u_i\nabla_\parallel(u_i) - \frac{1}{n}\nabla_\parallel(n T_e) ~~({\bf 2})\\
+\frac{d u_e}{dt} &= -u_e\nabla_\parallel(u_e) - 400\frac{T_e}{n}\nabla_\parallel(n) + 400\nabla_\parallel(\phi) - 1.71\times400\nabla_\parallel(T_e) + 12 n(u_i-u_e)  ~~({\bf 3})\\
+\frac{d T_e}{dt} &= \frac{2}{3}\frac{T_e}{n}0.71\nabla_\parallel\left[n (u_i-u_e)\right] - \frac{2}{3}T_e\nabla_\parallel(u_e) - u_e\nabla_\parallel(T_e) + S_T ~~({\bf 4})\\
+\frac{d \nabla_\perp^2\phi}{dt} &= -u_i\nabla_\parallel\left(\nabla_\perp^2\phi\right) + \frac{1}{n}\nabla_\parallel\left[n (u_i-u_e)\right] ~~({\bf 5}) \\
+\nabla_\perp^2\phi &= \omega ~~({\bf 6}) \\
+\end{align}
+$$
+
+with 
+
+$$
+\begin{align}
+S_n = S_T = 0.03\left\\{1-\tanh[(\rho_{s0}r-r_s)/L_s]\right\\} \\
+\frac{df'}{dt'} &= \frac{\partial f'}{\partial t'} - 40\left[\phi',f'\right]' 
+\end{align}
+$$
+<!-- 
+where $\rho_{s0}$, $r_s$ and $Ls$ have the (SI) values listed in the tables above. -->
+This system can be be obtained by applying the normalisation factors, then simplifying; see [here](./details/rogers-ricci-3d-normalised.md) for details. Note that the prime notation used in the derivations is dropped in the equations above for readability.
+
 #### Simulation time
 
 Based on Fig 4. of Rogers & Ricci, looks like total simulation time is $\sim 12$.
