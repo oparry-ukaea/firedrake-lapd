@@ -363,13 +363,15 @@ def rr_steady_state(x, y, cfg):
     return n_init, T_init, w_init
 
 
-def rr_SU_term(tri, test, phi, h, cfg, eps=1e-2):
-    driftvel = rr_ExB_vel(phi, cfg)
+def rr_SU_term(tri, test, phi, h, cfg, add_vel_par=None, eps=1e-2):
+    vel = rr_ExB_vel(phi, cfg)
+    if add_vel_par is not None:
+        vel[2] += add_vel_par
     return (
         0.5
         * h
-        * (dot(driftvel, grad(tri)))
-        * dot(driftvel, grad(test))
-        * (1 / sqrt((driftvel[0]) ** 2 + (driftvel[1]) ** 2 + eps * eps))
+        * (dot(vel, grad(tri)))
+        * dot(vel, grad(test))
+        * (1 / sqrt((vel[0]) ** 2 + (vel[1]) ** 2 + eps * eps))
         * dx
     )

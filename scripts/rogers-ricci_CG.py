@@ -8,7 +8,6 @@ from common import (
     set_up_mesh,
 )
 from firedrake import (
-    as_vector,
     Constant,
     DirichletBC,
     dx,
@@ -16,7 +15,6 @@ from firedrake import (
     Function,
     FunctionSpace,
     grad,
-    inner,
     PETSc,
     solve,
     SpatialCoordinate,
@@ -28,20 +26,6 @@ from irksome import Dt
 import os.path
 from pyop2.mpi import COMM_WORLD
 import time
-
-
-def su_term(h, tri, test, vel_long, vel_eps=0.001):
-    vel = as_vector([0, 0, vel_long])
-    return (
-        0.5
-        * h
-        * (
-            inner(vel, grad(test))
-            * inner(vel, grad(tri))
-            / (inner(vel, vel) + vel_eps * vel_eps)
-        )
-        * dx
-    )
 
 
 def rogers_ricci():
@@ -126,8 +110,8 @@ def rogers_ricci():
         - one_over_B * poisson_bracket(n, phi) * n_test * dx
         - (n_src * n_test) * dx
     )
-    if do_SU: 
-        n_terms += su_term(h_long, n, n_test, ue)
+    if do_SU:
+        n_terms += rr_SU_term(n, n_test, phi, h_long, cfg, add_vel_par=ue)
 
     ui_terms = (
         Dt(ui) * ui_test * dx
@@ -136,7 +120,7 @@ def rogers_ricci():
         + (grad(n * T)[2] / n * ui_test) * dx
     )
     if do_SU: 
-        ui_terms += su_term(h_long, ui, ui_test, ui)
+        ui_terms += rr_SU_term(ui, ui_test, phi, h_long, cfg, add_vel_par=ui)
 
     m_e = norm_cfg["m_e"]
     charge_e = norm_cfg["e"]
@@ -151,7 +135,7 @@ def rogers_ricci():
         - (charge_e * j_par / sigma_par * ue_test) * dx
     )
     if do_SU: 
-        ue_terms += su_term(h_long, m_e*ue, ue_test, ue)
+        ue_terms += rr_SU_term(ue, ue_test, phi, h_long, cfg, add_vel_par=ue)
 
     if is_isothermal:
         T_terms = 0
@@ -166,7 +150,7 @@ def rogers_ricci():
             - (T_src * T_test) * dx
         )
         if do_SU: 
-            T_terms += su_term(h_long, T, T_test, ue)
+            T_terms += rr_SU_term(T, T_test, phi, h_long, cfg, add_vel_par=ue)
 
     Omega_ci = norm_cfg["omega_ci"]
     m_i = norm_cfg["m_i"]
@@ -177,7 +161,7 @@ def rogers_ricci():
         - (m_i * Omega_ci * Omega_ci / charge_e / charge_e / n * grad(j_par)[2] * w_test) * dx
     )
     if do_SU: 
-        w_terms += su_term(h_long, w, w_test, ui)
+        w_terms += rr_SU_term(w, w_test, phi, h_long, cfg, add_vel_par=ui)
 
     # fmt: on
     F = n_terms + ui_terms + ue_terms + T_terms + w_terms
