@@ -112,7 +112,6 @@ def _normalise(cfg):
             * norm["charge"]
             / norm["mass"]
         )
-        cfg["normalised"]["u_ref"] = 1.0 * cfg["normalised"]["c_s0"]
 
 
 def overrule_param_val(d, k, new_val, condition, msg):

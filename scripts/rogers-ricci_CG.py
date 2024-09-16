@@ -19,6 +19,7 @@ from firedrake import (
     solve,
     SpatialCoordinate,
     split,
+    sqrt,
     TestFunctions,
     VTKFile,
 )
@@ -26,6 +27,43 @@ from irksome import Dt
 import os.path
 from pyop2.mpi import COMM_WORLD
 import time
+
+
+def gen_bohm_bcs(ui_space, ue_space, phi, T, cfg, T_eps=1e-2):
+    """Set up Bohm BCs for ui,ue"""
+    cs = cfg["normalised"]["c_s0"]
+
+    # Move to mesh set up?
+    if cfg["mesh"]["type"] == "cuboid":
+        par_bdy_lbl_lower = 5
+        par_bdy_lbl_upper = 6
+    elif cfg["mesh"]["type"] == "cylinder":
+        par_bdy_lbl_lower = "bottom"
+        par_bdy_lbl_upper = "top"
+
+    ui_bcs = [
+        DirichletBC(ui_space, -cs, par_bdy_lbl_lower),
+        DirichletBC(ui_space, cs, par_bdy_lbl_upper),
+    ]
+    # Option to include/exclude phi, T dependence from ue BCs
+    coulomb_log = cfg["physical"]["Lambda"]
+    if cfg["model"]["coulomb_fac_enabled"]:
+        coulomb_fac = exp(coulomb_log - phi / sqrt(T * T + T_eps * T_eps))
+    else:
+        coulomb_fac = 1
+    ue_bcs = [
+        DirichletBC(
+            ue_space,
+            -cs * coulomb_fac,
+            par_bdy_lbl_lower,
+        ),
+        DirichletBC(
+            ue_space,
+            cs * coulomb_fac,
+            par_bdy_lbl_upper,
+        ),
+    ]
+    return [*ui_bcs, *ue_bcs]
 
 
 def rogers_ricci():
@@ -172,40 +210,16 @@ def rogers_ricci():
     dt = Constant(time_cfg["t_end"] / time_cfg["num_steps"])
 
     mesh_cfg = cfg["mesh"]
-    # Move to mesh set up?
-    if mesh_cfg["type"] == "cuboid":
-        par_bdy_lbl_lower = 5
-        par_bdy_lbl_upper = 6
-    elif mesh_cfg["type"] == "cylinder":
-        par_bdy_lbl_lower = "bottom"
-        par_bdy_lbl_upper = "top"
 
-    # Set up Bohm BCs for ui,ue
-    cs = norm_cfg["u_ref"]
-    ui_bcs = [
-        DirichletBC(combined_space.sub(subspace_indices["ui"]), -cs, par_bdy_lbl_lower),
-        DirichletBC(combined_space.sub(subspace_indices["ui"]), cs, par_bdy_lbl_upper),
-    ]
-    # Excluding phi, T dependence from ue BCs for now
-    coulomb_log = cfg["physical"]["Lambda"]
-    if cfg["model"]["coulomb_fac_enabled"]:
-        coulomb_fac = exp(coulomb_log - phi / T)
-    else:
-        coulomb_fac = 1
-    ue_bcs = [
-        DirichletBC(
-            combined_space.sub(subspace_indices["ue"]),
-            -cs * coulomb_fac,
-            par_bdy_lbl_lower,
-        ),
-        DirichletBC(
-            combined_space.sub(subspace_indices["ue"]),
-            cs * coulomb_fac,
-            par_bdy_lbl_upper,
-        ),
-    ]
+    bohm_bcs = gen_bohm_bcs(
+        combined_space.sub(subspace_indices["ui"]),
+        combined_space.sub(subspace_indices["ue"]),
+        phi,
+        T,
+        cfg,
+    )
 
-    stepper = nl_solve_setup(F, t, dt, time_evo_funcs, cfg, bcs=[*ui_bcs, *ue_bcs])
+    stepper = nl_solve_setup(F, t, dt, time_evo_funcs, cfg, bcs=bohm_bcs)
 
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
 
@@ -213,10 +227,10 @@ def rogers_ricci():
     time_evo_funcs.sub(subspace_indices["n"]).interpolate(norm_cfg["n_init"])
     # Ion and electron velocities are initially linear in z
     time_evo_funcs.sub(subspace_indices["ui"]).interpolate(
-        2 * norm_cfg["u_ref"] * z / mesh_cfg["Lz"]
+        2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
     )
     time_evo_funcs.sub(subspace_indices["ue"]).interpolate(
-        2 * norm_cfg["u_ref"] * z / mesh_cfg["Lz"]
+        2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
     )
     if not is_isothermal:
         time_evo_funcs.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
