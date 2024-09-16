@@ -13,7 +13,7 @@ $$
 m_e\frac{d u_e}{dt} &= -m_e u_e\nabla_{\parallel}(u_e) - \frac{T_e}{n}\nabla_{\parallel}(n) + e\nabla_{\parallel}(\phi) - 1.71\nabla_{\parallel}(T_e) + \frac{e j_\parallel}{\sigma_\parallel}~~~(3)\\
 \frac{d T_e}{dt} &= \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel - \frac{2}{3}T_e\nabla_{\parallel}(u_e) - u_e\nabla_{\parallel}(T_e) + S_T~~~(4)\\
 \frac{d \omega}{dt} &= -u_i\nabla_\parallel \omega + \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel~~~(5)\\
-\nabla_{\perp}^2 \phi &= \omega
+\nabla^2\phi &= \frac{eB^2}{m_i \bar{n}}\omega~~~(6)\\
 \end{aligned}
 $$
 
@@ -111,12 +111,12 @@ The normalised forms of the equations are:
 
 $$
 \begin{align}
-\frac{d n}{dt} &= -\nabla_{\parallel}(n u_e) + S_n ~~({\bf 1}) \\
-\frac{d u_i}{dt} &= -u_i\nabla_\parallel(u_i) - \frac{1}{n}\nabla_\parallel(n T_e) ~~({\bf 2})\\
-\frac{d u_e}{dt} &= -u_e\nabla_\parallel(u_e) - 400\frac{T_e}{n}\nabla_\parallel(n) + 400\nabla_\parallel(\phi) - 1.71\times400\nabla_\parallel(T_e) + 12 n(u_i-u_e)  ~~({\bf 3})\\
-\frac{d T_e}{dt} &= \frac{2}{3}\frac{T_e}{n}0.71\nabla_\parallel\left[n (u_i-u_e)\right] - \frac{2}{3}T_e\nabla_\parallel(u_e) - u_e\nabla_\parallel(T_e) + S_T ~~({\bf 4})\\
-\frac{d \omega}{dt} &= -u_i\nabla_\parallel\omega + \frac{1}{n}\nabla_\parallel\left[n (u_i-u_e)\right] ~~({\bf 5}) \\
-\nabla_\perp^2\phi &= \omega ~~({\bf 6}) \\
+\frac{d n}{dt} &= -\nabla_{\parallel}(n u_e) + S_n ~~({\bf 7}) \\
+\frac{d u_i}{dt} &= -u_i\nabla_\parallel(u_i) - \frac{1}{n}\nabla_\parallel(n T_e) ~~({\bf 8})\\
+\frac{d u_e}{dt} &= -u_e\nabla_\parallel(u_e) - 400\frac{T_e}{n}\nabla_\parallel(n) + 400\nabla_\parallel(\phi) - 1.71\times400\nabla_\parallel(T_e) + 12 n(u_i-u_e)  ~~({\bf 9})\\
+\frac{d T_e}{dt} &= \frac{2}{3}\frac{T_e}{n}0.71\nabla_\parallel\left[n (u_i-u_e)\right] - \frac{2}{3}T_e\nabla_\parallel(u_e) - u_e\nabla_\parallel(T_e) + S_T ~~({\bf 10})\\
+\frac{d \omega}{dt} &= -u_i\nabla_\parallel\omega + \frac{1}{n}\nabla_\parallel\left[n (u_i-u_e)\right] ~~({\bf 11}) \\
+\nabla_\perp^2\phi &= \omega ~~({\bf 12}) \\
 \end{align}
 $$
 
