@@ -24,7 +24,7 @@ $$
 u_x &\equiv V_{\parallel x} \\
 p_e &= nT_e \\
 j_\parallel &= e n (u_i-u_e) \\
-\sigma_\parallel &= \frac{e^2 n_0 R}{m_{i}c_{s0}/\nu} \\
+\sigma_\parallel &= \frac{e^2 n_0 R}{m_{i}c_{s0}\nu} \\
 \Omega_{ci} &= e B / m_i c
 \end{aligned}
 $$
@@ -91,16 +91,16 @@ By default, there are 64x64x16 tetrahedral (cuboidal), giving element sizes of
 
 Normalisations follow those in Rogers & Ricci, that is:
 
-|                       | Normalised to   |
-| --------------------- | --------------- |
-| Charge                | $e$             |
-| Electric potential    | $e/T_{e0}$      |
-| Energy                | $T_{e0}$        |
-| Mass<sup>*</sup>      | $1600 m_i$      |
-| Number densities      | $n_0$           |
-| Perpendicular lengths | $100 \rho_{s0}$ |
-| Parallel lengths      | $R$             |
-| Time                  | $R/c_{S0}$      |
+|                       | Normalised to |
+| --------------------- | ------------- |
+| Charge                | $e$           |
+| Electric potential    | $e/T_{e0}$    |
+| Energy                | $T_{e0}$      |
+| Mass<sup>*</sup>      | $1600 m_i$    |
+| Number densities      | $n_0$         |
+| Perpendicular lengths | $\rho_{s0}$   |
+| Parallel lengths      | $R$           |
+| Time                  | $R/c_{S0}$    |
 
 <sup>*</sup> Not stated in the paper; derived from other normalisation factors.
 
