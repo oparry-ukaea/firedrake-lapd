@@ -42,22 +42,24 @@ where $r = \sqrt{x^2 + y^2}$
 
 ## Parameter Choices
 
-| Parameter     | Value               | Comment                                                                                                         |
-| ------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- |
-| $T_{e0}$      | 6 eV                |                                                                                                                 |
-| $L_z$         | 18 m                |                                                                                                                 |
-| $n_0$         | 2e18 m<sup>-3</sup> |                                                                                                                 |
-| $\nu$         | 0.03                |                                                                                                                 |
-| $m_i$         | 6.67e-27 kg         | Inferred from the value of $c_{s0}$ quoted in the paper. Value is $\sim 4 m_p$, consistent with a Helium plasma |
-| $\Omega_{ci}$ | $9.6e5$             |                                                                                                                 |
-| $\Lambda$     | 3                   | Couloumb Logarithm                                                                                              |
-| R             | 0.5 m               | Approx radius of the plasma column?                                                                             |
+| Parameter      | Value               | Comment                                                                                                         |
+| -------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| $T_{e0}$       | 6 eV                |                                                                                                                 |
+| $L_z$          | 18 m                |                                                                                                                 |
+| $n_0$          | 2e18 m<sup>-3</sup> |                                                                                                                 |
+| $\nu$          | 0.03                |                                                                                                                 |
+| $m_i$          | 6.67e-27 kg         | Inferred from the value of $c_{s0}$ quoted in the paper. Value is $\sim 4 m_p$, consistent with a Helium plasma |
+| $\tau=m_i/m_e$ | 400                 | Ion/electron mass ratio                                                                                         |
+| $\Omega_{ci}$  | $9.6e5$             |                                                                                                                 |
+| $\Lambda$      | 3                   | Couloumb Logarithm                                                                                              |
+| R              | 0.5 m               | Approx radius of the plasma column?                                                                             |
 
 Derived values
 | Parameter          | Calculated as                   | Value                               | Comment                                           |
 | ------------------ | ------------------------------- | ----------------------------------- | ------------------------------------------------- |
 | B                  | $\Omega_{ci} m_i q_E$           | 40 mT                               |                                                   |
 | $c_{s0}$           | $\sqrt{T_{e0}/m_i}$             | 1.2e4 ms<sup>-1</sup>               |                                                   |
+| $m_e$              | $\tau m_i$                      | 2.67e-24 kg                         |                                                   |
 | $\rho_{s0}$        | $c_{s0}/\Omega{ci}$             | 1.2e-2 m                            | Paper has 1.4e-2 m ... implies $m_i\sim 3 m_p$ !? |
 | $S_{0n}$           | 0.03 $n_0 c_{s0}/R$             | 4.8e22 m<sup>-3</sup>s<sup>-1</sup> |                                                   |
 | $S_{0T}$           | 0.03 $T_{e0} c_{s0} / R$        | 4318.4 Ks<sup>-1</sup>              |                                                   |
@@ -121,7 +123,7 @@ with
 
 $$
 \begin{align}
-S_n = S_T = 0.03\left\\{1-\tanh[(\rho_{s0}r-r_s)/L_s]\right\\} \\
+S_n = S_T &= 0.03\left\\{1-\tanh[(\rho_{s0}r-r_s)/L_s]\right\\} \\
 \frac{df'}{dt'} &= \frac{\partial f'}{\partial t'} - 40\left[\phi',f'\right]' 
 \end{align}
 $$
