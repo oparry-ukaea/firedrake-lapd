@@ -2,6 +2,8 @@
 
 Model based on the finite difference implementation described in "*Low-frequency turbulence in a linear magnetized plasma*", B.N. Rogers and P. Ricci, PRL **104**, 225002, 2010 ([link](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.104.225002)).
 
+Script: [rogers-ricci.py](../scripts/rogers-ricci.py)
+
 ## Equations
 
 Rogers & Ricci solve the electrostatic Braginskii equations with $T_i \ll T_e$ and $\beta \ll 1$. Note that there is a factor of $1/m_i$ missing from the equation for ion velocity in the paper.
@@ -137,11 +139,25 @@ This system can be be obtained by applying the normalisation factors, then simpl
 Based on Fig 4. of Rogers & Ricci, looks like total simulation time is $\sim 12$.
 Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0} = 500 \mu{\rm s}$ before normalisation.
 
-## CG version
+<!-- ## Example output
 
-Script: [rogers-ricci_CG.py](../scripts/rogers-ricci_CG.py)
+### CG version
 
-### Weak Form
+<figure>
+  <img src="media/a.gif" width="600">
+  <figcaption></figcaption>
+</figure>
+
+### DG version
+
+<figure>
+  <img src="media/b.gif" width="600">
+  <figcaption></figcaption>
+</figure> -->
+
+## Weak Forms
+
+### CG version
 
 Equations 1-5 are discretised over a domain $\Omega$ using a continuous Galerkin formulation.
 The functions $n$, $u_i$, $u_e$, $T$ and $\omega$, and respective test functions $v_1$, $v_2$, $v_3$, $v_4$ and $v_5$ live in separate CG function spaces ($V_1$ - $V_5$) which need not be of the same polynomial order.
@@ -159,6 +175,6 @@ $$
 \end{aligned}
 $$
 
-<!-- ## DG version
+### DG version
 
-Script: [rogers-ricci_DG.py](../scripts/rogers-ricci_DG.py) -->
+WIP

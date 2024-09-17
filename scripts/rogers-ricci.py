@@ -71,6 +71,8 @@ def rogers_ricci():
 
     # Read config file (expected next to this script)
     cfg = read_rr_config("rogers-ricci_config.yml")
+
+    assert cfg["numerics"]["discretisation"] == "CG"
     # Generate mesh
     mesh = set_up_mesh(cfg)
     x, y, z = SpatialCoordinate(mesh)
