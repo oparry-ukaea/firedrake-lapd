@@ -87,7 +87,7 @@ def rogers_ricci2D():
     n_terms = (
         (
             Dt(n)
-            - one_over_B * poisson_bracket(n, phi)
+            - one_over_B * poisson_bracket(phi, n)
             + sigma_cs_over_R * n * exp_T_term(T, phi, cfg)
             - n_src
         )
@@ -105,7 +105,7 @@ def rogers_ricci2D():
     w_terms = (
         (
             Dt(w)
-            - one_over_B * poisson_bracket(w, phi)
+            - one_over_B * poisson_bracket(phi, w)
             - Constant(sigma_cs_over_R * m_i * Omega_ci * Omega_ci / e)
             * (1 - exp_T_term(T, phi, cfg))
         )
@@ -120,7 +120,7 @@ def rogers_ricci2D():
     T_terms = (
         (
             Dt(T)
-            - one_over_B * poisson_bracket(T, phi)
+            - one_over_B * poisson_bracket(phi, T)
             + Constant(sigma_cs_over_R * 2 / 3)
             * T
             * (1.71 * exp_T_term(T, phi, cfg) - 0.71)
