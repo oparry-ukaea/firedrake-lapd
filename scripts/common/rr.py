@@ -73,7 +73,7 @@ def _normalise(cfg):
     # Space norm
     mesh["Lz"] = mesh["Lz"] * norm["Lpar"]
     mesh["zmin"] = mesh["zmin"] * norm["Lpar"]
-    for key in ["Lx", "Ly", "radius", "xmin", "ymin"]:
+    for key in ["dx", "Lx", "Ly", "radius", "xmin", "ymin"]:
         if key in mesh:
             mesh[key] = mesh[key] * norm["Ltrans"]
 
@@ -258,6 +258,7 @@ def _process_params(cfg):
     mesh_cfg["Lz"] = phys_cfg["Lz"]
     mesh_cfg["zmin"] = -phys_cfg["Lz"] / 2
     if mesh_cfg["type"] in ["circle", "cuboid", "rectangle"]:
+        mesh_cfg["dx"] = phys_cfg["L"] / mesh_cfg["nx"]
         mesh_cfg["Lx"] = phys_cfg["L"]
         mesh_cfg["Ly"] = phys_cfg["L"]
         mesh_cfg["xmin"] = -phys_cfg["L"] / 2
