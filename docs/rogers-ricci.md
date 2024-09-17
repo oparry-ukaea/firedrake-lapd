@@ -12,8 +12,8 @@ $$
 \begin{aligned}
 \frac{d n}{dt} &= -\nabla_{\parallel}(n u_e) + S_n ~~~(1)\\
 \frac{d u_i}{dt} &= -u_i\nabla_{\parallel}(u_i) - \frac{1}{m_i n} \nabla_{\parallel}(p_e)~~~(2)\\
-m_e\frac{d u_e}{dt} &= -m_e u_e\nabla_{\parallel}(u_e) - \frac{T_e}{n}\nabla_{\parallel}(n) + e\nabla_{\parallel}(\phi) - 1.71\nabla_{\parallel}(T_e) + \frac{e j_\parallel}{\sigma_\parallel}~~~(3)\\
-\frac{d T_e}{dt} &= \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel - \frac{2}{3}T_e\nabla_{\parallel}(u_e) - u_e\nabla_{\parallel}(T_e) + S_T~~~(4)\\
+m_e\frac{d u_e}{dt} &= -m_e u_e\nabla_{\parallel}(u_e) - \frac{T_e}{n}\nabla_{\parallel}(n) + e\nabla_{\parallel}\phi - 1.71\nabla_{\parallel}T_e + \frac{e j_\parallel}{\sigma_\parallel}~~~(3)\\
+\frac{d T_e}{dt} &= \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel - \frac{2}{3}T_e\nabla_{\parallel}(u_e) - u_e\nabla_{\parallel}T_e + S_T~~~(4)\\
 \frac{d \omega}{dt} &= -u_i\nabla_\parallel \omega + \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel~~~(5)\\
 \nabla^2\phi &= \frac{eB^2}{m_i \bar{n}}\omega~~~(6)\\
 \end{aligned}
@@ -113,11 +113,11 @@ The normalised forms of the equations are:
 
 $$
 \begin{align}
-\frac{d n}{dt} &= -\nabla_{\parallel}(n u_e) + S_n ~~({\bf 7}) \\
-\frac{d u_i}{dt} &= -u_i\nabla_\parallel(u_i) - \frac{1}{n}\nabla_\parallel(n T_e) ~~({\bf 8})\\
-\frac{d u_e}{dt} &= -u_e\nabla_\parallel(u_e) - 400\frac{T_e}{n}\nabla_\parallel(n) + 400\nabla_\parallel(\phi) - 1.71\times400\nabla_\parallel(T_e) + 12 n(u_i-u_e)  ~~({\bf 9})\\
-\frac{d T_e}{dt} &= \frac{2}{3}\frac{T_e}{n}0.71\nabla_\parallel\left[n (u_i-u_e)\right] - \frac{2}{3}T_e\nabla_\parallel(u_e) - u_e\nabla_\parallel(T_e) + S_T ~~({\bf 10})\\
-\frac{d \omega}{dt} &= -u_i\nabla_\parallel\omega + \frac{1}{n}\nabla_\parallel\left[n (u_i-u_e)\right] ~~({\bf 11}) \\
+\frac{\partial n}{\partial t}   &= \frac{R}{\rho_{s0}}\left[\phi,n\right] - \nabla_{\parallel}(n u_e) + S_n  ~~({\bf 7}) \\
+\frac{\partial u_i}{\partial t} &= \frac{R}{\rho_{s0}}\left[\phi,u_i\right]- u_i\nabla_\parallel u_i - \frac{1}{n}\nabla_\parallel (n T_e) ~~({\bf 8})\\
+\frac{\partial u_e}{\partial t} &= \frac{R}{\rho_{s0}}\left[\phi,u_e\right]- u_e\nabla_\parallel u_e - \tau\frac{T_e}{n}\nabla_\parallel n + \tau\nabla_\parallel \phi - 1.71\tau\nabla_\parallel T_e + \tau\nu n(u_i-u_e)  ~~({\bf 9})\\
+\frac{\partial T_e}{\partial t} &= \frac{R}{\rho_{s0}}\left[\phi,T_e\right] + \frac{2}{3}\frac{T_e}{n}0.71\nabla_\parallel \left[n (u_i-u_e)\right] - \frac{2}{3}T_e\nabla_\parallel u_e - u_e\nabla_\parallel T_e + S_T ~~({\bf 10})\\
+\frac{\partial \omega}{\partial t} &= \frac{R}{\rho_{s0}}\left[\phi,\omega\right] - u_i\nabla_\parallel \omega + \frac{1}{n}\nabla_\parallel \left[n (u_i-u_e)\right] ~~({\bf 11}) \\
 \nabla_\perp^2\phi &= \omega ~~({\bf 12}) \\
 \end{align}
 $$
@@ -125,14 +125,13 @@ $$
 with 
 
 $$
-\begin{align}
-S_n = S_T &= 0.03\left\\{1-\tanh[(\rho_{s0}r-r_s)/L_s]\right\\} \\
-\frac{df'}{dt'} &= \frac{\partial f'}{\partial t'} - 40\left[\phi',f'\right]' 
-\end{align}
+\begin{equation}
+S_n = S_T = 0.03\left\\{1-\tanh[(\rho_{s0}r-r_s)/L_s]\right\\}
+\end{equation}
 $$
 <!-- 
 where $\rho_{s0}$, $r_s$ and $Ls$ have the (SI) values listed in the tables above. -->
-This system can be be obtained by applying the normalisation factors, then simplifying; see [here](./details/rogers-ricci-3d-normalised.md) for details. Note that the prime notation used in the derivations is dropped in the equations above for readability.
+This system can be be obtained by applying the normalisation factors to equations 1-6, then simplifying; see [here](./details/rogers-ricci-3d-normalised.md) for details. Note that the prime notation used in the derivations is dropped in the equations above for the sake of readability.
 
 #### Simulation time
 
@@ -168,8 +167,8 @@ $$
 \begin{aligned}
 &\left< \dot{n}, v_1 \right> + \left<\nabla_{\parallel}(n u_e), v_1 \right> - \left< S_n, v_1 \right>\\
 &+\left< \dot{u_i}, v_2 \right> + \left< u_i\nabla_{\parallel}(u_i), v_2 \right> + \left< \frac{1}{n} \nabla_{\parallel}(p_e), v_2 \right>\\
-&+\left< m_e\dot{u_e}, v_3 \right> + \left< m_e u_e\nabla_{\parallel}(u_e), v_3 \right> + \left< \frac{T_e}{n}\nabla_{\parallel}(n), v_3 \right> - \left< e\nabla_{\parallel}(\phi), v_3 \right> + \left< 1.71\nabla_{\parallel}(T_e), v_3 \right> - \left< \frac{e j_\parallel}{\sigma_\parallel}, v_3 \right>\\
-&+\left< \dot{T_e}, v_4 \right> - \left< \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel, v_4 \right> + \left< \frac{2}{3}T_e\nabla_{\parallel}(u_e), v_4 \right> + \left< u_e\nabla_{\parallel}(T_e), v_4 \right> - \left< S_T, v_4 \right>\\
+&+\left< m_e\dot{u_e}, v_3 \right> + \left< m_e u_e\nabla_{\parallel}(u_e), v_3 \right> + \left< \frac{T_e}{n}\nabla_{\parallel}(n), v_3 \right> - \left< e\nabla_{\parallel}\phi, v_3 \right> + \left< 1.71\nabla_{\parallel}T_e, v_3 \right> - \left< \frac{e j_\parallel}{\sigma_\parallel}, v_3 \right>\\
+&+\left< \dot{T_e}, v_4 \right> - \left< \frac{2}{3}\frac{T_e}{e n}0.71\nabla_\parallel j_\parallel, v_4 \right> + \left< \frac{2}{3}T_e\nabla_{\parallel}(u_e), v_4 \right> + \left< u_e\nabla_{\parallel}T_e, v_4 \right> - \left< S_T, v_4 \right>\\
 &+\left< \dot{\omega}, v_5 \right> + \left< u_i\nabla_\parallel \omega, v_5 \right> - \left< \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel, v_5 \right>\\
 &= 0
 \end{aligned}
