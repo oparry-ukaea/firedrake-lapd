@@ -166,8 +166,7 @@ def rogers_ricci():
     j_par = charge_e * n * (ui - ue)
     sigma_par = norm_cfg["sigma_par"]
     ue_terms = (
-        m_e * Dt(ue) * ue_test * dx
-        - one_over_B * poisson_bracket(phi, ue) * ue_test * dx
+        m_e * (Dt(ue) - one_over_B * poisson_bracket(phi, ue)) * ue_test * dx
         + (m_e * ue * grad(ue)[2] * ue_test) * dx
         + (T / n * grad(n)[2] * ue_test) * dx
         - (charge_e * grad(phi)[2] * ue_test) * dx
