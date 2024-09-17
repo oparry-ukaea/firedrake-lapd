@@ -4,15 +4,20 @@ from firedrake import (
     as_vector,
     Constant,
     cosh,
+    DirichletBC,
     dot,
     dS,
     dx,
     FacetNormal,
     Function,
     grad,
+    LinearVariationalProblem,
+    LinearVariationalSolver,
     PETSc,
     sqrt,
     tanh,
+    TestFunction,
+    TrialFunction,
 )
 
 
@@ -94,6 +99,40 @@ def overrule_param_val(d, k, new_val, condition, msg):
     if condition:
         PETSc.Sys.Print(msg)
         d[k] = new_val
+
+
+def phi_solve_setup(phi_space, phi, w, cfg, bcs=None):
+    phi_test = TestFunction(phi_space)
+    phi_tri = TrialFunction(phi_space)
+
+    rhs_fac = (
+        cfg["normalised"]["e"]
+        * cfg["normalised"]["B"] ** 2
+        / cfg["normalised"]["m_i"]
+        / cfg["normalised"]["n_char"]
+    )
+    # N.B. Integration by parts gives you a -ve sign on the LHS
+    Lphi = (
+        -(grad(phi_tri)[0] * grad(phi_test)[0] + grad(phi_tri)[1] * grad(phi_test)[1])
+        * dx
+    )
+    Rphi = Constant(rhs_fac) * w * phi_test * dx
+
+    # D0 on all boundaries
+    if cfg["mesh"]["type"] in ["circle", "cuboid", "rectangle"]:
+        bdy_lbl_all = "on_boundary"
+    elif cfg["mesh"]["type"] == "cylinder":
+        bdy_lbl_all = ("on_boundary", "top", "bottom")
+    if bcs is None:
+        bcs = DirichletBC(phi_space, 0, bdy_lbl_all)
+
+    phi_problem = LinearVariationalProblem(Lphi, Rphi, phi, bcs=bcs)
+    solver_params = {
+        "ksp_type": "preonly",
+        "pc_type": "lu",
+        "pc_factor_mat_solver_type": "mumps",
+    }
+    return LinearVariationalSolver(phi_problem, solver_parameters=solver_params)
 
 
 def _process_params(cfg):

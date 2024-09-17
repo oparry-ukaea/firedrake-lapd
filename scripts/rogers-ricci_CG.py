@@ -1,4 +1,11 @@
-from common import poisson_bracket, read_rr_config, rr_src_term, rr_SU_term, set_up_mesh
+from common import (
+    phi_solve_setup,
+    poisson_bracket,
+    read_rr_config,
+    rr_src_term,
+    rr_SU_term,
+    set_up_mesh,
+)
 from firedrake import (
     as_vector,
     Constant,
@@ -13,10 +20,7 @@ from firedrake import (
     solve,
     SpatialCoordinate,
     split,
-    TestFunction,
     TestFunctions,
-    TrialFunction,
-    VectorSpaceBasis,
     VTKFile,
 )
 from irksome import Dt, GaussLegendre, TimeStepper
@@ -52,36 +56,6 @@ def nl_solve_setup(F, t, dt, n_ui_ue_T_w, bcs, cfg):
         "pc_factor_mat_solver_type": "mumps",
     }
     return TimeStepper(F, butcher_tableau, t, dt, n_ui_ue_T_w, solver_parameters=nl_solver_params, bcs=bcs)  # fmt: skip
-
-
-def phi_solve_setup(phi_space, vorticity, mesh_cfg):
-    phi_test = TestFunction(phi_space)
-    phi_tri = TrialFunction(phi_space)
-    Lphi = (
-        grad(phi_tri)[0] * grad(phi_test)[0] + grad(phi_tri)[1] * grad(phi_test)[1]
-    ) * dx
-    Rphi = vorticity * phi_test * dx
-
-    # D0 on all boundaries
-    if mesh_cfg["type"] == "cuboid":
-        bdy_lbl_all = "on_boundary"
-    elif mesh_cfg["type"] == "cylinder":
-        bdy_lbl_all = ("on_boundary", "top", "bottom")
-    phi_BCs = DirichletBC(phi_space, 0, bdy_lbl_all)
-
-    # Solver params
-    solver_params = {
-        "mat_type": "aij",
-        "snes_type": "ksponly",
-        "ksp_type": "gmres",
-        "pc_type": "lu",
-        "mat_type": "aij",
-        "pc_factor_mat_solver_type": "mumps",
-    }
-
-    nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
-
-    return Lphi == Rphi, phi_BCs, solver_params, nullspace
 
 
 def rogers_ricci():
@@ -144,9 +118,7 @@ def rogers_ricci():
     # else:
     #     outfile.write(n_src, T_src)
 
-    phi_eqn, phi_bcs, phi_solve_params, nullspace = phi_solve_setup(
-        phi_space, w, cfg["mesh"]
-    )
+    phi_solver = phi_solve_setup(phi_space, phi, w, cfg)
 
     # Assemble variational problem
     if is_isothermal:
@@ -291,7 +263,7 @@ def rogers_ricci():
         if (float(t) + float(dt)) > t_end:
             dt.assign(t_end - float(t))
             PETSc.Sys.Print(f"  Last dt = {dt}")
-        solve(phi_eqn, phi, nullspace=nullspace, solver_parameters=phi_solve_params, bcs=phi_bcs)  # fmt: skip
+        phi_solver.solve()
 
         # Write fields on output steps
         if step % cfg["time"]["output_freq"] == 0:

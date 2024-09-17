@@ -1,25 +1,19 @@
 from firedrake import (
     Constant,
-    DirichletBC,
     dx,
     exp,
     Function,
     FunctionSpace,
-    grad,
-    inner,
-    LinearVariationalProblem,
-    LinearVariationalSolver,
     PETSc,
     SpatialCoordinate,
     split,
     sqrt,
-    TestFunction,
     TestFunctions,
-    TrialFunction,
     VTKFile,
 )
 
 from common import (
+    phi_solve_setup,
     poisson_bracket,
     read_rr_config,
     rr_DG_upwind_term,
@@ -55,36 +49,6 @@ def nl_solve_setup(F, t, dt, state, cfg):
         nl_solver_params["snes_monitor"] = None
 
     return TimeStepper(F, butcher_tableau, t, dt, state, solver_parameters=nl_solver_params)  # fmt: skip
-
-
-def phi_solve_setup(phi_space, phi, w, cfg):
-    phi_test = TestFunction(phi_space)
-    phi_tri = TrialFunction(phi_space)
-
-    rhs_fac = (
-        cfg["normalised"]["e"]
-        * cfg["normalised"]["B"] ** 2
-        / cfg["normalised"]["m_i"]
-        / cfg["normalised"]["n_char"]
-    )
-    # N.B. Integration by parts gives you a -ve sign on the LHS
-    Lphi = -inner(grad(phi_test), grad(phi_tri)) * dx
-    Rphi = Constant(rhs_fac) * w * phi_test * dx
-
-    # D0 on all boundaries
-    if cfg["mesh"]["type"] in ["circle", "cuboid", "rectangle"]:
-        bdy_lbl_all = "on_boundary"
-    elif cfg["mesh"]["type"] == "cylinder":
-        bdy_lbl_all = ("on_boundary", "top", "bottom")
-    phi_BCs = DirichletBC(phi_space, 0, bdy_lbl_all)
-
-    phi_problem = LinearVariationalProblem(Lphi, Rphi, phi, bcs=phi_BCs)
-    solver_params = {
-        "ksp_type": "preonly",
-        "pc_type": "lu",
-        "pc_factor_mat_solver_type": "mumps",
-    }
-    return LinearVariationalSolver(phi_problem, solver_parameters=solver_params)
 
 
 def rogers_ricci2D():

@@ -7,5 +7,6 @@ from .rr import (
     rr_src_term,
     rr_steady_state,
     rr_SU_term,
+    phi_solve_setup,
 )
 from .terms import poisson_bracket
