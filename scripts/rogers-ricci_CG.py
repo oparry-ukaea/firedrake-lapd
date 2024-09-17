@@ -111,7 +111,7 @@ def rogers_ricci():
         - (n_src * n_test) * dx
     )
     if do_SU:
-        n_terms += rr_SU_term(n, n_test, phi, h, cfg, add_vel_par=ue)
+        n_terms += rr_SU_term(n, n_test, phi, h, cfg, vel_par=ue)
 
     ui_terms = (
         Dt(ui) * ui_test * dx
@@ -120,7 +120,7 @@ def rogers_ricci():
         + (grad(n * T)[2] / n * ui_test) * dx
     )
     if do_SU: 
-        ui_terms += rr_SU_term(ui, ui_test, phi, h, cfg, add_vel_par=ui)
+        ui_terms += rr_SU_term(ui, ui_test, phi, h, cfg, vel_par=ui)
 
     m_e = norm_cfg["m_e"]
     charge_e = norm_cfg["e"]
@@ -135,7 +135,7 @@ def rogers_ricci():
         - (charge_e * j_par / sigma_par * ue_test) * dx
     )
     if do_SU: 
-        ue_terms += rr_SU_term(ue, ue_test, phi, h, cfg, add_vel_par=ue)
+        ue_terms += rr_SU_term(ue, ue_test, phi, h, cfg, vel_par=ue)
 
     if is_isothermal:
         T_terms = 0
@@ -150,7 +150,7 @@ def rogers_ricci():
             - (T_src * T_test) * dx
         )
         if do_SU: 
-            T_terms += rr_SU_term(T, T_test, phi, h, cfg, add_vel_par=ue)
+            T_terms += rr_SU_term(T, T_test, phi, h, cfg, vel_par=ue)
 
     Omega_ci = norm_cfg["omega_ci"]
     m_i = norm_cfg["m_i"]
@@ -161,7 +161,7 @@ def rogers_ricci():
         - (m_i * Omega_ci * Omega_ci / charge_e / charge_e / n * grad(j_par)[2] * w_test) * dx
     )
     if do_SU: 
-        w_terms += rr_SU_term(w, w_test, phi, h, cfg, add_vel_par=ui)
+        w_terms += rr_SU_term(w, w_test, phi, h, cfg, vel_par=ui)
 
     # fmt: on
     F = n_terms + ui_terms + ue_terms + T_terms + w_terms

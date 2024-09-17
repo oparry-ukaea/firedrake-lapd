@@ -364,10 +364,10 @@ def rr_steady_state(x, y, cfg):
     return n_init, T_init, w_init
 
 
-def rr_SU_term(tri, test, phi, h, cfg, add_vel_par=None, eps=1e-2):
+def rr_SU_term(tri, test, phi, h, cfg, vel_par=None, eps=1e-2):
     vel = rr_ExB_vel(phi, cfg)
-    if add_vel_par is not None:
-        vel[2] += add_vel_par
+    if vel_par is not None:
+        vel = as_vector([vel[0], vel[1], vel_par])
     return (
         0.5
         * h
