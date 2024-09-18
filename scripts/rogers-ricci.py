@@ -228,10 +228,10 @@ def rogers_ricci():
     time_evo_funcs.sub(subspace_indices["n"]).interpolate(norm_cfg["n_init"])
     # Ion and electron velocities are initially linear in z
     time_evo_funcs.sub(subspace_indices["ui"]).interpolate(
-        norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
+        2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
     )
     time_evo_funcs.sub(subspace_indices["ue"]).interpolate(
-        norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
+        2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
     )
     if not is_isothermal:
         time_evo_funcs.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
