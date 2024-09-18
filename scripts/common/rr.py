@@ -179,6 +179,7 @@ def _process_params(cfg):
     set_default_param(model_cfg, "is_isothermal", False)
     set_default_param(model_cfg, "coulomb_fac_enabled", False)
     set_default_param(model_cfg, "Ls_boost", 1.0)
+    set_default_param(model_cfg, "elec_ion_mass_ratio", 400.0)
     set_default_param(model_cfg, "n_init", 1e18)
     set_default_param(model_cfg, "start_from_steady_state", True)
     set_default_param(model_cfg, "T_init", 6.0)
@@ -207,7 +208,9 @@ def _process_params(cfg):
     set_default_param(phys_cfg, "Lz", 18.0)
     set_default_param(phys_cfg, "m_i", 4 * constants["m_p"])
     # Unless defaults are overridden, use mass-boosted electrons as per paper; m_e = m_i/400 = m_p/100
-    set_default_param(phys_cfg, "m_e", phys_cfg["m_i"] / 400.0)
+    set_default_param(
+        phys_cfg, "m_e", phys_cfg["m_i"] / model_cfg["elec_ion_mass_ratio"]
+    )
     set_default_param(phys_cfg, "n_char", 2e18)
     set_default_param(phys_cfg, "n_0", 2e18)
     set_default_param(phys_cfg, "nu", 0.03)

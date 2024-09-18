@@ -5,6 +5,7 @@ mesh:
   nz: 16
 model:
   coulomb_fac_enabled: True
+  elec_ion_mass_ratio: 400
   is_isothermal: False
   n_init: 2.0e+12
   S0n_fac: 0.03
