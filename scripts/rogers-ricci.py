@@ -16,7 +16,6 @@ from firedrake import (
     FunctionSpace,
     grad,
     PETSc,
-    solve,
     SpatialCoordinate,
     split,
     sqrt,
