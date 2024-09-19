@@ -135,7 +135,7 @@ def phi_solve_setup(phi_space, phi, w, cfg, bcs=None):
         -(grad(phi_tri)[0] * grad(phi_test)[0] + grad(phi_tri)[1] * grad(phi_test)[1])
         * dx
     )
-    Rphi = Constant(rhs_fac) * w * phi_test * dx
+    Rphi = w * phi_test * dx
 
     # D0 on all boundaries
     if cfg["mesh"]["type"] in ["circle", "cuboid", "rectangle"]:

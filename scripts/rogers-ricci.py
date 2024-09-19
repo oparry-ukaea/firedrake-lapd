@@ -162,16 +162,17 @@ def rogers_ricci():
     if do_SU: 
         ui_terms += rr_SU_term(ui, ui_test, phi, h, cfg, vel_par=ui)
 
-    m_e = norm_cfg["m_e"]
     charge_e = norm_cfg["e"]
     j_par = charge_e * n * (ui - ue)
-    sigma_par = norm_cfg["sigma_par"]
+    tau = cfg["model"]["elec_ion_mass_ratio"]
+    nu = cfg["physical"]["nu"]
     ue_terms = (
-        m_e * (Dt(ue) - one_over_B * poisson_bracket(phi, ue)) * ue_test * dx
-        + (m_e * ue * grad(ue)[2] * ue_test) * dx
-        + (T / n * grad(n)[2] * ue_test) * dx
-        - (charge_e * grad(phi)[2] * ue_test) * dx
-        - (charge_e * j_par / sigma_par * ue_test) * dx
+        Dt(ue) * ue_test * dx
+        - one_over_B * poisson_bracket(phi, ue) * ue_test * dx
+        + ue * grad(ue)[2] * ue_test * dx
+        + tau * T / sqrt(n * n + n_eps * n_eps) * grad(n)[2] * ue_test * dx
+        - tau * grad(phi)[2] * ue_test * dx
+        - nu*tau*n*(ui - ue) * ue_test * dx
     )
     if do_SU: 
         ue_terms += rr_SU_term(ue, ue_test, phi, h, cfg, vel_par=ue)
@@ -183,7 +184,7 @@ def rogers_ricci():
         T_terms = (
             Dt(T) * T_test * dx
             - one_over_B * poisson_bracket(phi, T) * T_test * dx
-            - (2.0 / 3 * T / charge_e / sqrt(n * n + n_eps * n_eps) * 0.71 * grad(j_par)[2] * T_test) * dx
+            - (2.0 / 3 * 0.71 * T/sqrt(n * n + n_eps * n_eps) * grad(n * (ui - ue))[2] * T_test) * dx
             + (2.0 / 3 * T * grad(ue)[2] * T_test) * dx
             + (ue * grad(T)[2] * T_test) * dx
             - (T_src * T_test) * dx
@@ -197,7 +198,7 @@ def rogers_ricci():
         Dt(w) * w_test * dx
         - one_over_B * poisson_bracket(phi, w) * w_test * dx
         + (ui * grad(w)[2] * w_test) * dx
-        - (m_i * Omega_ci * Omega_ci / charge_e / charge_e / sqrt(n * n + n_eps * n_eps) * grad(j_par)[2] * w_test) * dx
+        - (1 / sqrt(n * n + n_eps * n_eps) * grad(n * (ui - ue))[2] * w_test) * dx
     )
     if do_SU: 
         w_terms += rr_SU_term(w, w_test, phi, h, cfg, vel_par=ui)
