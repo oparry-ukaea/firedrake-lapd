@@ -2,7 +2,7 @@ mesh:
   type: cuboid
   nx: 32
   ny: 32
-  nz: 16
+  nz: 8
 model:
   coulomb_fac_enabled: False
   elec_ion_mass_ratio: 400
@@ -21,6 +21,6 @@ physical:
   R: 0.5
   T_e0: 6
 time:
-  num_steps: 10000
-  output_freq: 1
-  t_end: 1000.0e-6
+  num_steps: 20000
+  output_freq: 10
+  t_end: 5000.0e-6
