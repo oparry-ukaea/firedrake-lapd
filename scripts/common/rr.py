@@ -174,6 +174,26 @@ def _process_params(cfg):
     )
     cfg["constants"] = constants
 
+    # Set mesh defaults
+    mesh_cfg = cfg["mesh"]
+    set_default_param(mesh_cfg, "type", "cuboid")
+    mesh_type = mesh_cfg["type"]
+    if mesh_type in ["cuboid", "rectangle"]:
+        set_default_param(mesh_cfg, "nx", 1024)
+        set_default_param(mesh_cfg, "ny", 1024)
+        set_default_param(mesh_cfg, "use_hex", True)
+    elif mesh_type == "circle":
+        mesh_cfg["nx"] = 128
+    elif mesh_type == "cylinder":
+        mesh_cfg["longitudinal_axis"] = 2
+        set_default_param(mesh_cfg, "ref_level", 3)
+    else:
+        raise ValueError(f"{mesh_type} is an invalid mesh type")
+
+    is2D = mesh_type in ["circle", "rectangle"]
+    if not is2D:
+        set_default_param(mesh_cfg, "nz", 64)
+
     # Set model defaults
     model_cfg = cfg["model"]
     set_default_param(model_cfg, "is_isothermal", False)
@@ -200,6 +220,14 @@ def _process_params(cfg):
             cfg["numerics"]["discretisation"] == "DG",
             "Using DG: Ignoring do_streamline_upwinding=True",
         )
+    # read all, default to 1
+    # read each var, default to all
+    set_default_param(num_cfg, "fe_order", {})
+    fe_order = num_cfg["fe_order"]
+    set_default_param(fe_order, "all", 1)
+    vars = ["n", "T", "w", "phi"] if is2D else ["n", "T", "w", "phi", "ui", "ue"]
+    for var in vars:
+        set_default_param(fe_order, var, fe_order["all"])
 
     # Set phys defaults
     phys_cfg = cfg["physical"]
@@ -217,25 +245,6 @@ def _process_params(cfg):
     set_default_param(phys_cfg, "omega_ci", 9.6e5)
     set_default_param(phys_cfg, "R", 0.5)
     set_default_param(phys_cfg, "T_e0", 6.0)
-
-    # Set mesh defaults
-    mesh_cfg = cfg["mesh"]
-    set_default_param(mesh_cfg, "type", "cuboid")
-    mesh_type = mesh_cfg["type"]
-    if mesh_type in ["cuboid", "rectangle"]:
-        set_default_param(mesh_cfg, "nx", 1024)
-        set_default_param(mesh_cfg, "ny", 1024)
-        set_default_param(mesh_cfg, "use_hex", True)
-    elif mesh_type == "circle":
-        mesh_cfg["nx"] = 128
-    elif mesh_type == "cylinder":
-        mesh_cfg["longitudinal_axis"] = 2
-        set_default_param(mesh_cfg, "ref_level", 3)
-    else:
-        raise ValueError(f"{mesh_type} is an invalid mesh type")
-
-    if mesh_type not in ["circle", "rectangle"]:
-        set_default_param(mesh_cfg, "nz", 64)
 
     # Derived physical params
     phys_cfg["B"] = phys_cfg["omega_ci"] * phys_cfg["m_i"] / constants["e"]

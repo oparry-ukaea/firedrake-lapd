@@ -46,10 +46,10 @@ def rogers_ricci2D():
 
     # Function spaces
     DG_or_CG = cfg["numerics"]["discretisation"]
-    n_space = FunctionSpace(mesh, DG_or_CG, 1)  # n
-    w_space = FunctionSpace(mesh, DG_or_CG, 1)  # w
-    T_space = FunctionSpace(mesh, DG_or_CG, 1)  # T
-    phi_space = FunctionSpace(mesh, "CG", 1)  # phi
+    n_space = FunctionSpace(mesh, DG_or_CG, cfg["numerics"]["fe_order"]["n"])  # n
+    w_space = FunctionSpace(mesh, DG_or_CG, cfg["numerics"]["fe_order"]["w"])  # w
+    T_space = FunctionSpace(mesh, DG_or_CG, cfg["numerics"]["fe_order"]["T"])  # T
+    phi_space = FunctionSpace(mesh, "CG", cfg["numerics"]["fe_order"]["phi"])  # phi
 
     # Functions (combine time-evolved function spaces to facilitate interaction with Irksome)
     phi = Function(phi_space)

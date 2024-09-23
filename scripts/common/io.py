@@ -19,7 +19,7 @@ def read_yaml_config(fname, process_derived=None, normalise=None, verbose=True):
 
     if verbose:
         # Pretty-print all config options
-        pp_str = pprint.pformat(cfg, depth=2)
+        pp_str = pprint.pformat(cfg, depth=3)
         PETSc.Sys.Print(f"Options read or derived from {fpath}: ")
         PETSc.Sys.Print(pp_str)
 
