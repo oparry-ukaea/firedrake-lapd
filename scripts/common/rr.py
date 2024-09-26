@@ -239,8 +239,8 @@ def _process_params(cfg):
     set_default_param(
         phys_cfg, "m_e", phys_cfg["m_i"] / model_cfg["elec_ion_mass_ratio"]
     )
+    set_default_param(phys_cfg, "n_char", 2e18)
     set_default_param(phys_cfg, "n_0", 2e18)
-    set_default_param(phys_cfg, "n_char", 1600 * phys_cfg["n_0"])
     set_default_param(phys_cfg, "nu", 0.03)
     set_default_param(phys_cfg, "omega_ci", 9.6e5)
     set_default_param(phys_cfg, "R", 0.5)
