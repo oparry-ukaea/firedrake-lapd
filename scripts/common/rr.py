@@ -131,11 +131,10 @@ def phi_solve_setup(phi_space, phi, w, cfg, bcs=None):
         / cfg["normalised"]["n_char"]
     )
     # N.B. Integration by parts gives you a -ve sign on the LHS
-    Lphi = (
-        -(grad(phi_tri)[0] * grad(phi_test)[0] + grad(phi_tri)[1] * grad(phi_test)[1])
-        * dx
-    )
-    Rphi = w * phi_test * dx
+    Lphi = -(
+        grad(phi_tri)[0] * grad(phi_test)[0] + grad(phi_tri)[1] * grad(phi_test)[1]
+    ) * dx(degree=cfg["numerics"]["quadrature_degree"])
+    Rphi = w * phi_test * dx(degree=cfg["numerics"]["quadrature_degree"])
 
     # D0 on all boundaries
     if cfg["mesh"]["type"] in ["circle", "cuboid", "rectangle"]:
@@ -210,6 +209,7 @@ def _process_params(cfg):
     num_cfg = cfg["numerics"]
     set_default_param(num_cfg, "discretisation", "CG")
     set_default_param(num_cfg, "do_streamline_upwinding", True)
+    set_default_param(num_cfg, "quadrature_degree_boost", 0)
     assert cfg["numerics"]["discretisation"] in [
         "CG",
         "DG",
@@ -288,6 +288,12 @@ def _process_params(cfg):
     )
     model_cfg["S0T"] = (
         model_cfg["S0T_fac"] * phys_cfg["T_e0"] * phys_cfg["c_s0"] / phys_cfg["R"]
+    )
+
+    # Derived numerical params
+    max_element_degree = max(int(v) for v in fe_order.values())
+    num_cfg["quadrature_degree"] = (
+        max_element_degree + num_cfg["quadrature_degree_boost"]
     )
 
     # By default run between t=0 and t=12*R/c_s0
@@ -387,5 +393,5 @@ def rr_SU_term(tri, test, phi, h, cfg, vel_par=None, eps=1e-2):
         * (dot(vel, grad(tri)))
         * dot(vel, grad(test))
         * (1 / sqrt((vel[0]) ** 2 + (vel[1]) ** 2 + eps * eps))
-        * dx
+        * dx(degree=cfg["numerics"]["quadrature_degree"])
     )

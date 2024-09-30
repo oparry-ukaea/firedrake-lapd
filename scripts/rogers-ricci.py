@@ -1,6 +1,4 @@
 from common import (
-    nl_solve_setup,
-    phi_solve_setup,
     poisson_bracket,
     read_rr_config,
     rr_src_term,
@@ -9,12 +7,16 @@ from common import (
 )
 from firedrake import (
     Constant,
+    derivative,
     DirichletBC,
     dx,
     exp,
     Function,
     FunctionSpace,
     grad,
+    inner,
+    NonlinearVariationalProblem,
+    NonlinearVariationalSolver,
     PETSc,
     SpatialCoordinate,
     split,
@@ -22,10 +24,35 @@ from firedrake import (
     TestFunctions,
     VTKFile,
 )
-from irksome import Dt
 import os.path
 from pyop2.mpi import COMM_WORLD
 import time
+
+
+def setup_nl_solver(eqn, U1, Jp, bcs, cfg):
+    nfields = 5 if cfg["model"]["is_isothermal"] else 6
+    potential_idx_str = f"{nfields-1}"
+    other_indices_str = ",".join(str(idx) for idx in range(nfields - 1))
+    nl_prob = NonlinearVariationalProblem(eqn, U1, Jp=Jp, bcs=bcs)
+    nl_params = {
+        "pc_type": "fieldsplit",
+        "pc_fieldsplit_type": "additive",
+        "pc_fieldsplit_0_fields": other_indices_str,
+        "pc_fieldsplit_1_fields": potential_idx_str,
+        "fieldsplit_0_ksp_type": "gmres",
+        "fieldsplit_0_ksp_gmres_restart": 100,
+        "fieldsplit_0_pc_type": "bjacobi",
+        "fieldsplit_0_sub_pc_type": "ilu",
+        "fieldsplit_1_ksp_type": "preonly",
+        "fieldsplit_1_ksp_reuse_preconditioner": None,
+        "fieldsplit_1_pc_type": "lu",
+        "fieldsplit_1_pc_factor_mat_solver_type": "mumps",
+    }
+    return NonlinearVariationalSolver(nl_prob, solver_parameters=nl_params)
+
+
+def lhs_term(start, end, test):
+    return inner(end - start, test) * dx
 
 
 def gen_bohm_bcs(ui_space, ue_space, phi, T, cfg, T_eps=1e-2):
@@ -84,20 +111,28 @@ def rogers_ricci():
     w_space = FunctionSpace(mesh, "CG", 1)  # w
     phi_space = FunctionSpace(mesh, "CG", 1)  # phi
 
-    # Functions (combine time-evolved function spaces to facilitate interaction with Irksome)
-    phi = Function(phi_space)
     is_isothermal = cfg["model"]["is_isothermal"]
     if is_isothermal:
-        combined_space = n_space * ui_space * ue_space * w_space
-        time_evo_funcs = Function(combined_space)
-        n, ui, ue, w = split(time_evo_funcs)
-        T = Constant(cfg["normalised"]["T_init"], name="T")
-        subspace_indices = dict(n=0, ui=1, ue=2, w=3)
+        combined_space = n_space * ui_space * ue_space * w_space * phi_space
+        state0 = Function(combined_space)
+        state1 = Function(combined_space)
+        n0, ui0, ue0, w0, phi0 = split(state0)
+        n1, ui1, ue1, w1, phi1 = split(state1)
+        Th = Constant(cfg["normalised"]["T_init"], name="T")
+        subspace_indices = dict(n=0, ui=1, ue=2, w=3, phi=4)
     else:
-        combined_space = n_space * ui_space * ue_space * T_space * w_space
-        time_evo_funcs = Function(combined_space)
-        n, ui, ue, T, w = split(time_evo_funcs)
-        subspace_indices = dict(n=0, ui=1, ue=2, T=3, w=4)
+        combined_space = n_space * ui_space * ue_space * T_space * w_space * phi_space
+        state0 = Function(combined_space)
+        state1 = Function(combined_space)
+        n0, ui0, ue0, T0, w0, phi0 = split(state0)
+        n1, ui1, ue1, T1, w1, phi1 = split(state1)
+        Th = (T0 + T1) / 2
+        subspace_indices = dict(n=0, ui=1, ue=2, T=3, w=4, phi=5)
+    nh = (n0 + n1) / 2
+    uih = (ui0 + ui1) / 2
+    ueh = (ue0 + ue1) / 2
+    wh = (w0 + w1) / 2
+    phih = phi1
 
     # Rename fields and set up funcs for output
     subspace_names = dict(
@@ -106,14 +141,19 @@ def rogers_ricci():
         ue="electron velocity",
         T="temperature",
         w="vorticity",
+        phi="potential",
     )
     for fld in subspace_indices.keys():
-        time_evo_funcs.sub(subspace_indices[fld]).rename(subspace_names[fld])
-    phi.rename("potential")
+        state0.sub(subspace_indices[fld]).rename(subspace_names[fld])
     output_funcs = [
-        time_evo_funcs.sub(subspace_indices[fld]) for fld in subspace_indices.keys()
+        state0.sub(subspace_indices[fld]) for fld in subspace_indices.keys()
     ]
-    output_funcs.append(phi)
+
+    # Time setup
+    time_cfg = cfg["time"]
+    t = Constant(time_cfg["t_start"])
+    t_end = time_cfg["t_end"]
+    dt = Constant(time_cfg["t_end"] / time_cfg["num_steps"])
 
     # Source functions
     n_src = rr_src_term(n_space, x, y, "n", cfg)
@@ -127,145 +167,149 @@ def rogers_ricci():
     # else:
     #     outfile.write(n_src, T_src)
 
-    phi_solver = phi_solve_setup(phi_space, phi, w, cfg)
-
     # Assemble variational problem
     if is_isothermal:
-        n_test, ui_test, ue_test, w_test = TestFunctions(combined_space)
+        n_test, ui_test, ue_test, w_test, phi_test = TestFunctions(combined_space)
     else:
-        n_test, ui_test, ue_test, T_test, w_test = TestFunctions(combined_space)
+        n_test, ui_test, ue_test, T_test, w_test, phi_test = TestFunctions(
+            combined_space
+        )
 
     # h factor for streamline-upwinding
     norm_cfg = cfg["normalised"]
     do_SU = cfg["numerics"]["do_streamline_upwinding"]
     one_over_B = Constant(1 / cfg["normalised"]["B"])
-    n_eps = 1e-6
     if do_SU:
         h = cfg["mesh"]["dx"]
 
     # fmt: off
-    n_terms = (
-        Dt(n) * n_test * dx
-        - one_over_B * poisson_bracket(phi, n) * n_test * dx
-        + (grad(n * ue)[2] * n_test) * dx
-        - (n_src * n_test) * dx
-    )
+    n_eps = 1e-8
+    n_h_plus_eps = sqrt(nh * nh + n_eps * n_eps)
+    n_terms = lhs_term(n0, n1, n_test) + dt * (
+        - one_over_B * poisson_bracket(phih, n_h_plus_eps) * n_test
+        + (grad(n_h_plus_eps * ueh)[2] * n_test)
+        - (n_src * n_test)
+    ) * dx(degree=cfg["numerics"]["quadrature_degree"])
     if do_SU:
-        n_terms += rr_SU_term(n, n_test, phi, h, cfg, vel_par=ue)
+        n_terms += dt * rr_SU_term(n_h_plus_eps, n_test, phih, h, cfg, vel_par=ueh)
 
-    ui_terms = (
-        Dt(ui) * ui_test * dx
-        - one_over_B * poisson_bracket(phi, ui) * ui_test * dx
-        + (ui * grad(ui)[2] * ui_test) * dx
-        + (grad(n * T)[2] / sqrt(n * n + n_eps * n_eps) * ui_test) * dx
-    )
+    ui_terms = lhs_term(ui0, ui1, ui_test) + dt * (
+        - one_over_B * poisson_bracket(phih, uih) * ui_test
+        + (uih * grad(uih)[2] * ui_test)
+        + (grad(n_h_plus_eps * Th)[2] / n_h_plus_eps * ui_test)
+    ) * dx(degree=cfg["numerics"]["quadrature_degree"])
     if do_SU: 
-        ui_terms += rr_SU_term(ui, ui_test, phi, h, cfg, vel_par=ui)
+        ui_terms += dt * rr_SU_term(uih, ui_test, phih, h, cfg, vel_par=uih)
 
     charge_e = norm_cfg["e"]
-    j_par = charge_e * n * (ui - ue)
+    j_par = charge_e * n_h_plus_eps * (uih - ueh)
     tau = cfg["model"]["elec_ion_mass_ratio"]
     nu = cfg["physical"]["nu"]
-    ue_terms = (
-        Dt(ue) * ue_test * dx
-        - one_over_B * poisson_bracket(phi, ue) * ue_test * dx
-        + ue * grad(ue)[2] * ue_test * dx
-        + tau * T / sqrt(n * n + n_eps * n_eps) * grad(n)[2] * ue_test * dx
-        - tau * grad(phi)[2] * ue_test * dx
-        - nu*tau*n*(ui - ue) * ue_test * dx
-    )
+    ue_terms = lhs_term(ue0, ue1, ue_test) + dt * (
+        - one_over_B * poisson_bracket(phih, ueh) * ue_test
+        + ueh * grad(ueh)[2] * ue_test
+        + tau * Th / n_h_plus_eps * grad(n_h_plus_eps)[2] * ue_test
+        - tau * grad(phih)[2] * ue_test
+        - nu*tau*n_h_plus_eps*(uih - ueh) * ue_test
+    ) * dx(degree=cfg["numerics"]["quadrature_degree"])
     if do_SU: 
-        ue_terms += rr_SU_term(ue, ue_test, phi, h, cfg, vel_par=ue)
+        ue_terms += dt * rr_SU_term(ueh, ue_test, phih, h, cfg, vel_par=ueh)
 
     if is_isothermal:
         T_terms = 0
     else:
-        ue_terms += (1.71 * grad(T)[2] * ue_test) * dx
-        T_terms = (
-            Dt(T) * T_test * dx
-            - one_over_B * poisson_bracket(phi, T) * T_test * dx
-            - (2.0 / 3 * 0.71 * T/sqrt(n * n + n_eps * n_eps) * grad(n * (ui - ue))[2] * T_test) * dx
-            + (2.0 / 3 * T * grad(ue)[2] * T_test) * dx
-            + (ue * grad(T)[2] * T_test) * dx
-            - (T_src * T_test) * dx
-        )
+        ue_terms += dt * (1.71 * tau * grad(Th)[2] * ue_test) * dx(degree=cfg["numerics"]["quadrature_degree"])
+        T_terms = lhs_term(T0, T1, T_test) + dt * (
+            - one_over_B * poisson_bracket(phih, Th) * T_test
+            - (2.0 / 3 * 0.71 * Th/n_h_plus_eps * grad(n_h_plus_eps * (uih - ueh))[2] * T_test)
+            + (2.0 / 3 * Th * grad(ueh)[2] * T_test) 
+            + (ueh * grad(Th)[2] * T_test)
+            - (T_src * T_test)
+        ) * dx(degree=cfg["numerics"]["quadrature_degree"])
         if do_SU: 
-            T_terms += rr_SU_term(T, T_test, phi, h, cfg, vel_par=ue)
+            T_terms += dt * rr_SU_term(Th, T_test, phih, h, cfg, vel_par=ueh)
 
     Omega_ci = norm_cfg["omega_ci"]
     m_i = norm_cfg["m_i"]
-    w_terms = (
-        Dt(w) * w_test * dx
-        - one_over_B * poisson_bracket(phi, w) * w_test * dx
-        + (ui * grad(w)[2] * w_test) * dx
-        - (1 / sqrt(n * n + n_eps * n_eps) * grad(n * (ui - ue))[2] * w_test) * dx
-    )
+    w_terms = lhs_term(w0, w1, w_test) + dt * (- one_over_B * poisson_bracket(phih, wh) * w_test
+        + (uih * grad(wh)[2] * w_test)
+        - (1 /n_h_plus_eps * grad(n_h_plus_eps * (uih - ueh))[2] * w_test)
+    ) * dx(degree=cfg["numerics"]["quadrature_degree"])
     if do_SU: 
-        w_terms += rr_SU_term(w, w_test, phi, h, cfg, vel_par=ui)
+        w_terms += dt * rr_SU_term(wh, w_test, phih, h, cfg, vel_par=uih)
+
+    phi_terms = (
+        grad(phih)[0] * grad(phi_test)[0] + grad(phih)[1] * grad(phi_test)[1]
+    ) * dx + wh * phi_test * dx
 
     # fmt: on
-    F = n_terms + ui_terms + ue_terms + T_terms + w_terms
+    F = n_terms + ui_terms + ue_terms + T_terms + w_terms + phi_terms
+    F_for_jacobian = F + phih * phi_test * dx
+    Jp = derivative(F_for_jacobian, state1)
 
-    time_cfg = cfg["time"]
-    t = Constant(time_cfg["t_start"])
-    t_end = time_cfg["t_end"]
-    dt = Constant(time_cfg["t_end"] / time_cfg["num_steps"])
-
-    mesh_cfg = cfg["mesh"]
-
-    bohm_bcs = gen_bohm_bcs(
+    # BCs
+    bcs = gen_bohm_bcs(
         combined_space.sub(subspace_indices["ui"]),
         combined_space.sub(subspace_indices["ue"]),
-        phi,
-        T,
+        phih,
+        Th,
         cfg,
     )
+    bcs.append(
+        DirichletBC(combined_space.sub(subspace_indices["phi"]), 0.0, "on_boundary")
+    )
 
-    stepper = nl_solve_setup(F, t, dt, time_evo_funcs, cfg, bcs=bohm_bcs)
-
-    outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
+    nl_solver = setup_nl_solver(F, state1, Jp, bcs, cfg)
 
     # Initial conditions
-    time_evo_funcs.sub(subspace_indices["n"]).interpolate(norm_cfg["n_init"])
+    mesh_cfg = cfg["mesh"]
+    state0.sub(subspace_indices["n"]).interpolate(norm_cfg["n_init"])
     # Ion and electron velocities are initially linear in z
-    time_evo_funcs.sub(subspace_indices["ui"]).interpolate(
+    state0.sub(subspace_indices["ui"]).interpolate(
         2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
     )
-    time_evo_funcs.sub(subspace_indices["ue"]).interpolate(
+    state0.sub(subspace_indices["ue"]).interpolate(
         2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
     )
     if not is_isothermal:
-        time_evo_funcs.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
+        state0.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
     # Vorticity = 0
-    time_evo_funcs.sub(subspace_indices["w"]).interpolate(0)
+    state0.sub(subspace_indices["w"]).interpolate(0)
 
-    outfile.write(*output_funcs)
+    # Set up output
+    outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
 
     PETSc.Sys.Print("\nTimestep loop:")
     step = 0
+    state1.assign(state0)
+    twall_last_info = time.time()
     while float(t) < float(t_end):
-        it_start = time.time()
         if (float(t) + float(dt)) > t_end:
             dt.assign(t_end - float(t))
             PETSc.Sys.Print(f"  Last dt = {dt}")
-        phi_solver.solve()
+        t.assign(float(t) + float(dt))
+        nl_solver.solve()
+        state0.assign(state1)
 
         # Write fields on output steps
         if step % cfg["time"]["output_freq"] == 0:
             outfile.write(*output_funcs)
 
-        stepper.advance()
-        t.assign(float(t) + float(dt))
-        it_end = time.time()
-        it_wall_time = it_end - it_start
-        PETSc.Sys.Print(
-            f"  Iter {step+1:d}/{time_cfg['num_steps']:d} took {it_wall_time:.5g} s"
-        )
-        PETSc.Sys.Print(f"t = {float(t):.5g}")
+        if step % cfg["time"]["info_freq"] == 0:
+            dtwall_last_info = time.time() - twall_last_info
+            twall_last_info = time.time()
+            last_info_step = step + 1 - cfg["time"]["info_freq"]
+            if cfg["time"]["info_freq"] == 1 or last_info_step < 0:
+                iters_str = f"Iter {step+1:d}"
+            else:
+                iters_str = f"Iters {last_info_step:d}-{step:d}"
+            PETSc.Sys.Print(
+                f"  {iters_str}(/{time_cfg['num_steps']:d}) took {dtwall_last_info:.5g} s"
+            )
+            PETSc.Sys.Print(f"t = {float(t):.5g}")
         step += 1
-    end = time.time()
-    wall_time = end - start
 
+    wall_time = time.time() - start
     PETSc.Sys.Print("\nDone.")
     PETSc.Sys.Print(f"Total wall time: {wall_time:.5g}")
 
