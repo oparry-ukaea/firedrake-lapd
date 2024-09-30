@@ -186,31 +186,31 @@ def rogers_ricci():
     n_eps = 1e-8
     n_h_plus_eps = sqrt(nh * nh + n_eps * n_eps)
     n_terms = lhs_term(n0, n1, n_test) + dt * (
-        - one_over_B * poisson_bracket(phih, n_h_plus_eps) * n_test
-        + (grad(n_h_plus_eps * ueh)[2] * n_test)
+        - one_over_B * poisson_bracket(phih, nh) * n_test
+        + (grad(nh * ueh)[2] * n_test)
         - (n_src * n_test)
     ) * dx(degree=cfg["numerics"]["quadrature_degree"])
     if do_SU:
-        n_terms += dt * rr_SU_term(n_h_plus_eps, n_test, phih, h, cfg, vel_par=ueh)
+        n_terms += dt * rr_SU_term(nh, n_test, phih, h, cfg, vel_par=ueh)
 
     ui_terms = lhs_term(ui0, ui1, ui_test) + dt * (
         - one_over_B * poisson_bracket(phih, uih) * ui_test
         + (uih * grad(uih)[2] * ui_test)
-        + (grad(n_h_plus_eps * Th)[2] / n_h_plus_eps * ui_test)
+        + (grad(nh * Th)[2] / n_h_plus_eps * ui_test)
     ) * dx(degree=cfg["numerics"]["quadrature_degree"])
     if do_SU: 
         ui_terms += dt * rr_SU_term(uih, ui_test, phih, h, cfg, vel_par=uih)
 
     charge_e = norm_cfg["e"]
-    j_par = charge_e * n_h_plus_eps * (uih - ueh)
+    j_par = charge_e * nh * (uih - ueh)
     tau = cfg["model"]["elec_ion_mass_ratio"]
     nu = cfg["physical"]["nu"]
     ue_terms = lhs_term(ue0, ue1, ue_test) + dt * (
         - one_over_B * poisson_bracket(phih, ueh) * ue_test
         + ueh * grad(ueh)[2] * ue_test
-        + tau * Th / n_h_plus_eps * grad(n_h_plus_eps)[2] * ue_test
+        + tau * Th / n_h_plus_eps * grad(nh)[2] * ue_test
         - tau * grad(phih)[2] * ue_test
-        - nu*tau*n_h_plus_eps*(uih - ueh) * ue_test
+        - nu*tau*nh*(uih - ueh) * ue_test
     ) * dx(degree=cfg["numerics"]["quadrature_degree"])
     if do_SU: 
         ue_terms += dt * rr_SU_term(ueh, ue_test, phih, h, cfg, vel_par=ueh)
@@ -221,7 +221,7 @@ def rogers_ricci():
         ue_terms += dt * (1.71 * tau * grad(Th)[2] * ue_test) * dx(degree=cfg["numerics"]["quadrature_degree"])
         T_terms = lhs_term(T0, T1, T_test) + dt * (
             - one_over_B * poisson_bracket(phih, Th) * T_test
-            - (2.0 / 3 * 0.71 * Th/n_h_plus_eps * grad(n_h_plus_eps * (uih - ueh))[2] * T_test)
+            - (2.0 / 3 * 0.71 * Th/n_h_plus_eps * grad(nh * (uih - ueh))[2] * T_test)
             + (2.0 / 3 * Th * grad(ueh)[2] * T_test) 
             + (ueh * grad(Th)[2] * T_test)
             - (T_src * T_test)
@@ -233,7 +233,7 @@ def rogers_ricci():
     m_i = norm_cfg["m_i"]
     w_terms = lhs_term(w0, w1, w_test) + dt * (- one_over_B * poisson_bracket(phih, wh) * w_test
         + (uih * grad(wh)[2] * w_test)
-        - (1 /n_h_plus_eps * grad(n_h_plus_eps * (uih - ueh))[2] * w_test)
+        - (1 /n_h_plus_eps * grad(nh * (uih - ueh))[2] * w_test)
     ) * dx(degree=cfg["numerics"]["quadrature_degree"])
     if do_SU: 
         w_terms += dt * rr_SU_term(wh, w_test, phih, h, cfg, vel_par=uih)
