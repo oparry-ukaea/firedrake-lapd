@@ -183,7 +183,7 @@ def rogers_ricci():
         h = cfg["mesh"]["dx"]
 
     # fmt: off
-    n_eps = 1e-8
+    n_eps = 1e-7
     n_h_plus_eps = sqrt(nh * nh + n_eps * n_eps)
     n_terms = lhs_term(n0, n1, n_test) + dt * (
         - one_over_B * poisson_bracket(phih, nh) * n_test
