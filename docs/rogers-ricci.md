@@ -135,8 +135,9 @@ This system can be be obtained by applying the normalisation factors to equation
 
 #### Simulation time
 
-Based on Fig 4. of Rogers & Ricci, looks like total simulation time is $\sim 12$.
-Assuming this, like other figures, is in normalised units, we need $t_{\rm end}=12 R/c_{s0} = 500 \mu{\rm s}$ before normalisation.
+Rogers and Ricci don't appear to specify the duration of their simulations, except to say that it's sufficient for the system to reach equilibrium.
+In a paper by Shi et al. [1], which uses the Gyrokinetic code Gkeyll to model a virtually identical system, they suggest "several ion crossing times".
+The ion crossing time for our simulations is $\frac{L_z}{2} / \sqrt{T_0/m_i} = 750 \mu{\rm s}$. We set a total duration of 5000 $\mu{\rm s}$
 
 <!-- ## Example output
 
@@ -177,3 +178,7 @@ $$
 ### DG version
 
 WIP
+
+
+
+\[1\] [Shi EL, Hammett GW, Stoltzfus-Dueck T, Hakim A. Gyrokinetic continuum simulation of turbulence in a straight open-field-line plasma. Journal of Plasma Physics. 2017;83(3):905830304. doi:10.1017/S002237781700037X](https://www.cambridge.org/core/journals/journal-of-plasma-physics/article/gyrokinetic-continuum-simulation-of-turbulence-in-a-straight-openfieldline-plasma/7E4273E83115F9ED55EDA393190D756F)
