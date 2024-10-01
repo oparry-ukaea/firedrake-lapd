@@ -92,6 +92,14 @@ def gen_bohm_bcs(ui_space, ue_space, phi, T, cfg, T_eps=1e-2):
     return [*ui_bcs, *ue_bcs]
 
 
+def gen_phi_bcs(phi, cfg):
+    if cfg["mesh"]["type"] == "cuboid":
+        trans_bdy_lbls = [1, 2, 3, 4]
+    elif cfg["mesh"]["type"] == "cylinder":
+        trans_bdy_lbls = "on_boundary"
+    return DirichletBC(phi, 0.0, trans_bdy_lbls)
+
+
 def rogers_ricci():
 
     # Read config file (expected next to this script)
@@ -254,9 +262,7 @@ def rogers_ricci():
         Th,
         cfg,
     )
-    bcs.append(
-        DirichletBC(combined_space.sub(subspace_indices["phi"]), 0.0, "on_boundary")
-    )
+    bcs.append(gen_phi_bcs(combined_space.sub(subspace_indices["phi"]), cfg))
 
     nl_solver = setup_nl_solver(F, state1, Jp, bcs, cfg)
 
