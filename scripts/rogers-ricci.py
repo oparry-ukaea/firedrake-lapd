@@ -93,7 +93,6 @@ def gen_bohm_bcs(ui_space, ue_space, phi, T, cfg, T_eps=1e-2):
 
 
 def rogers_ricci():
-    start = time.time()
 
     # Read config file (expected next to this script)
     cfg = read_rr_config("rogers-ricci_config.yml")
@@ -279,6 +278,12 @@ def rogers_ricci():
     # Set up output
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
 
+    # Timestep logger
+    timestep_output_file = os.path.join(cfg["root_dir"], "timesteps.csv")
+    if COMM_WORLD.rank == 0:
+        with open(timestep_output_file, "w") as timestep_output:
+            timestep_output.write(("step, time, duration\n"))
+
     PETSc.Sys.Print("\nTimestep loop:")
     step = 0
     state1.assign(state0)
@@ -307,6 +312,10 @@ def rogers_ricci():
                 f"  {iters_str}(/{time_cfg['num_steps']:d}) took {dtwall_last_info:.5g} s"
             )
             PETSc.Sys.Print(f"t = {float(t):.5g}")
+
+        if COMM_WORLD.rank == 0:
+            with open(timestep_output_file, "a") as timestep_output:
+                timestep_output.write(f"{step}, {float(t)}, {dtwall_last_info}\n")
         step += 1
 
     wall_time = time.time() - start
