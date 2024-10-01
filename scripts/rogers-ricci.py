@@ -144,9 +144,9 @@ def rogers_ricci():
         phi="potential",
     )
     for fld in subspace_indices.keys():
-        state0.sub(subspace_indices[fld]).rename(subspace_names[fld])
+        state1.sub(subspace_indices[fld]).rename(subspace_names[fld])
     output_funcs = [
-        state0.sub(subspace_indices[fld]) for fld in subspace_indices.keys()
+        state1.sub(subspace_indices[fld]) for fld in subspace_indices.keys()
     ]
 
     # Time setup
