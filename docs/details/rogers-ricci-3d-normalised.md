@@ -138,16 +138,17 @@ SI equation: $\frac{d \nabla_\perp^2\phi}{dt} = -u_i\nabla_\parallel\left(\nabla
 
 $$
 \begin{align}
-\left(\frac{1}{\rho_{s0}}\right)^2\frac{T_0}{e}\frac{c_s}{R}\frac{d \nabla_\perp'^2\phi'}{dt'} &= -\frac{c_s}{R}\left(\frac{1}{\rho_{s0}}\right)^2\frac{T_0}{e}u_i'\nabla_\parallel'\left(\nabla_\perp'^2\phi'\right) + \frac{m_i \Omega_{ci}^2}{e^2 n_0 n' R}\nabla_\parallel'\left[e n_0 c_s n' (u_i'-u_e')\right] \\
-\frac{d \nabla_\perp'^2\phi'}{dt'} &= -u_i'\nabla_\parallel'\left(\nabla_\perp'^2\phi'\right) + \frac{\rho_{s0}^2 e R}{c_s T_0}\frac{m_i \Omega_{ci}^2}{e^2 n_0 n' R}\nabla_\parallel'\left[e n_0 c_s n' (u_i'-u_e')\right] \\
-\frac{d \nabla_\perp'^2\phi'}{dt'} &= -u_i'\nabla_\parallel'\left(\nabla_\perp'^2\phi'\right) + \frac{\rho_{s0}^2}{T_0}\frac{m_i \Omega_{ci}^2}{n'}\nabla_\parallel'\left[n' (u_i'-u_e')\right] \\
+\frac{d \nabla_\perp^2\phi}{dt} &= -u_i\nabla_\parallel\left(\nabla_\perp^2\phi\right) + \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel \\
+\frac{eB^2}{m_i \bar{n}}\frac{d \omega}{dt} &= -\frac{eB^2}{m_i \bar{n}}u_i\nabla_\parallel\omega + \frac{m_i \Omega_{ci}^2}{e^2 n}\nabla_\parallel j_\parallel \\
+\frac{n_0 c_s}{R}\frac{eB^2}{m_i \bar{n}}\frac{d \omega'}{dt'} &= -\frac{c_s n_0 eB^2}{R m_i \bar{n}}u_i'\nabla_\parallel'\omega' + \frac{m_i \Omega_{ci}^2}{e^2 n_0 n' R}\nabla_\parallel'\left[e n_0 c_s n' (u_i'-u_e')\right] \\
+\frac{d \omega'}{dt'} &= -u_i'\nabla_\parallel'\omega' + \frac{\bar{n}}{n_0}\frac{1}{n'}\nabla_\parallel'\left[n' (u_i'-u_e')\right] \\
 \frac{d \omega'}{dt'} &= -u_i'\nabla_\parallel'\omega' + \frac{1}{n'}\nabla_\parallel'\left[n' (u_i'-u_e')\right] \\
 \frac{\partial \omega'}{\partial t'} &= \frac{R}{\rho_{s0}}\left[\phi',\omega'\right]'-u_i'\nabla_\parallel'\omega' + \frac{1}{n'}\nabla_\parallel'\left[n' (u_i'-u_e')\right] ~~({\bf 5}) \\
 \frac{\partial \omega'}{\partial t'} &- 40\left[\phi',\omega'\right]' + u_i'\nabla_\parallel'\omega' - \frac{1}{n'}\nabla_\parallel'\left[n' (u_i'-u_e')\right] = 0 \\
 \end{align}
 $$
 
-Where  $c_s^2=T_0/m_i=\rho_{s0}^2\Omega_{ci}^2$ was used to obtain the fourth line.
+Where  $\Omega_{ci}=\frac{eB}{m_i}$ was used to obtain the fourth line and the fifth line follows from the choice $\bar{n}=n_0$.
 
 ### Potential
 
