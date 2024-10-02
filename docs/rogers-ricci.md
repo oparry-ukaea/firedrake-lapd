@@ -71,7 +71,7 @@ Derived values
 ### Other implementation details
 
 #### Boundary conditions
-Bohm BCs for velocities at the end walls ($z = \pm L_z/2$): $u_i= \pm c_s$, $u_e=\pm exp(\Lambda - e\phi/T_e)$. All other BCs are homogeneous Neumann.
+Bohm BCs for velocities at the end walls ($z = \pm L_z/2$): $u_i= \pm c_s$, $u_e=\pm c_s exp(\Lambda - e\phi/T_e)$. All other BCs are homogeneous Neumann.
 
 
 #### Domain and mesh
