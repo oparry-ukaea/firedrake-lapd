@@ -231,6 +231,9 @@ def _process_params(cfg):
     for var in vars:
         set_default_param(fe_order, var, fe_order["all"])
 
+    set_default_param(num_cfg, "n_eps", 1e-7)
+    set_default_param(num_cfg, "T_eps", 1e-2)
+
     # Set phys defaults
     phys_cfg = cfg["physical"]
     #  N.B. R is plasma column radius, *not* the transverse size of the domain!
