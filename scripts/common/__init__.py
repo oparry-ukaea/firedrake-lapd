@@ -9,5 +9,6 @@ from .rr import (
     rr_steady_state,
     rr_SU_term,
     phi_solve_setup,
+    shi_ICs,
 )
 from .terms import poisson_bracket

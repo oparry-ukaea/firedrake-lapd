@@ -3,6 +3,7 @@ from common import (
     read_rr_config,
     rr_src_term,
     rr_SU_term,
+    shi_ICs,
     set_up_mesh,
 )
 from firedrake import (
@@ -268,16 +269,21 @@ def rogers_ricci():
 
     # Initial conditions
     mesh_cfg = cfg["mesh"]
-    state0.sub(subspace_indices["n"]).interpolate(norm_cfg["n_init"])
-    # Ion and electron velocities are initially linear in z
-    state0.sub(subspace_indices["ui"]).interpolate(
-        2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
-    )
-    state0.sub(subspace_indices["ue"]).interpolate(
-        2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
-    )
+    if cfg["model"]["use_shi_ICs"]:
+        n_init, ui_init, ue_init, T_init = shi_ICs(x, y, cfg)
+    else:
+        n_init = norm_cfg["n_init"]
+        # Ion and electron velocities are initially linear in z
+        ui_init = 2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
+        ue_init = ui_init
+        T_init = norm_cfg["T_init"]
+
+    state0.sub(subspace_indices["n"]).interpolate(n_init)
+    state0.sub(subspace_indices["ui"]).interpolate(ui_init)
+    state0.sub(subspace_indices["ue"]).interpolate(ue_init)
     if not is_isothermal:
-        state0.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
+        state0.sub(subspace_indices["T"]).interpolate(T_init)
+
     # Vorticity = 0
     state0.sub(subspace_indices["w"]).interpolate(0)
 

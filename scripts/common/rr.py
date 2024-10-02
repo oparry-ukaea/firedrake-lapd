@@ -2,6 +2,7 @@ from .io import read_yaml_config, set_default_param
 import math
 from firedrake import (
     as_vector,
+    conditional,
     Constant,
     cosh,
     DirichletBC,
@@ -353,6 +354,18 @@ def rr_src_ufl(x, y, var, cfg):
     Ls = cfg["normalised"]["Ls"]
     rs = cfg["normalised"]["rs"]
     return fac * (1 - tanh((r - rs) / Ls)) / 2
+
+
+def shi_init_func(r2, redge2, cedge):
+    return conditional(r2 < redge2, (1 - cedge) * (1 - r2 / redge2, 2) ** 3, cedge)
+
+
+def shi_ICs(x, y, cfg):
+    redge2 = cfg["mesh"]["Lx"] * cfg["mesh"]["Lx"]
+    r2 = x * x + y * y
+    n_init = shi_init_func(r2, redge2, 0.2)
+    T_init = 5.7 * shi_init_func(r2, redge2, 0.2)
+    return n_init, ui_init, ue_init, T_init
 
 
 def rr_steady_state(x, y, cfg):
