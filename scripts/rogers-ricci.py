@@ -75,7 +75,7 @@ def gen_bohm_bcs(ui_space, ue_space, phi, T, cfg):
     # Option to include/exclude phi, T dependence from ue BCs
     coulomb_log = cfg["physical"]["Lambda"]
     if cfg["model"]["coulomb_fac_enabled"]:
-        coulomb_fac = exp(coulomb_log - phi / sqrt(T * T + T_eps * T_eps))
+        coulomb_fac = 1 + coulomb_log - phi / sqrt(T * T + T_eps * T_eps)
     else:
         coulomb_fac = 1
     ue_bcs = [
