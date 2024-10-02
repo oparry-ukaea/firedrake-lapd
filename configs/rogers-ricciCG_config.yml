@@ -14,6 +14,7 @@ model:
   T_init: 6.0e-6
 numerics:
   do_streamline_upwinding: True
+  n_eps: 1.0e-3
 physical:
   Lz: 18.0
   n_0: 2.0e+18
