@@ -263,21 +263,9 @@ def rogers_ricci():
     F_for_jacobian = F + phih * phi_test * dx
     Jp = derivative(F_for_jacobian, state1)
 
-    # BCs
-    bcs = gen_bohm_bcs(
-        combined_space.sub(subspace_indices["ui"]),
-        combined_space.sub(subspace_indices["ue"]),
-        phih,
-        Th,
-        cfg,
-    )
-    bcs.append(gen_phi_bcs(combined_space.sub(subspace_indices["phi"]), cfg))
-
-    nl_solver = setup_nl_solver(F, state1, Jp, bcs, cfg)
-
     # Initial conditions
     mesh_cfg = cfg["mesh"]
-    state0.sub(subspace_indices["n"]).interpolate(norm_cfg["n_init"])
+
     # Ion and electron velocities are initially linear in z
     state0.sub(subspace_indices["ui"]).interpolate(
         2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
@@ -285,10 +273,25 @@ def rogers_ricci():
     state0.sub(subspace_indices["ue"]).interpolate(
         2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
     )
+
+    if cfg["model"]["exp_ics"]:
+        r = sqrt(x * x + y * y)
+        scale = 80 * cfg["normalised"]["Ls"]
+        T_init = 1e-6 * exp(-(r * r) / scale)
+        phi_init = 3 * T_init
+        n_init = T_init
+        w_init = 3 * 4 * T_init * (scale - r * r) / scale / scale / 20
+    else:
+        n_init = norm_cfg["n_init"]
+        T_init = norm_cfg["T_init"]
+        phi_init = 3 * T_init
+        w_init = 0
+
+    state0.sub(subspace_indices["n"]).interpolate(n_init)
     if not is_isothermal:
-        state0.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
-    # Vorticity = 0
-    state0.sub(subspace_indices["w"]).interpolate(0)
+        state0.sub(subspace_indices["T"]).interpolate(T_init)
+    state0.sub(subspace_indices["w"]).interpolate(w_init)
+    state0.sub(subspace_indices["phi"]).interpolate(phi_init)
 
     # Set up output
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
@@ -302,6 +305,18 @@ def rogers_ricci():
     PETSc.Sys.Print("\nTimestep loop:")
     step = 0
     state1.assign(state0)
+
+    # BCs
+    bcs = gen_bohm_bcs(
+        combined_space.sub(subspace_indices["ui"]),
+        combined_space.sub(subspace_indices["ue"]),
+        phih,
+        Th,
+        cfg,
+    )
+    bcs.append(gen_phi_bcs(combined_space.sub(subspace_indices["phi"]), cfg))
+
+    nl_solver = setup_nl_solver(F, state1, Jp, bcs, cfg)
     twall_last_info = time.time()
     while float(t) < float(t_end):
         if (float(t) + float(dt)) > t_end:

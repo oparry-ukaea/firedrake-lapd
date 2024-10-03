@@ -6,6 +6,7 @@ mesh:
 model:
   coulomb_fac_enabled: True
   elec_ion_mass_ratio: 400
+  exp_ics: True
   is_isothermal: False
   Ls_boost: 4.0
   n_init: 2.0e+12
