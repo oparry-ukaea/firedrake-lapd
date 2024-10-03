@@ -75,21 +75,30 @@ def gen_bohm_bcs(ui_space, ue_space, phi, T, cfg):
     # Option to include/exclude phi, T dependence from ue BCs
     coulomb_log = cfg["physical"]["Lambda"]
     if cfg["model"]["coulomb_fac_enabled"]:
-        coulomb_fac = exp(coulomb_log - phi / sqrt(T * T + T_eps * T_eps))
+        # bohm_expr = exp(coulomb_log - phi / sqrt(T * T + T_eps * T_eps))
+        bohm_expr = 1 + coulomb_log - phi / sqrt(T * T + T_eps * T_eps)
     else:
-        coulomb_fac = 1
+        bohm_expr = 1
     ue_bcs = [
         DirichletBC(
             ue_space,
-            -cs * coulomb_fac,
+            -cs * bohm_expr,
             par_bdy_lbl_lower,
         ),
         DirichletBC(
             ue_space,
-            cs * coulomb_fac,
+            cs * bohm_expr,
             par_bdy_lbl_upper,
         ),
     ]
+
+    ue_bc_low = Function(ue_space, name="ue_low")
+    ue_bc_low.interpolate(-cs * bohm_expr)
+    ue_bc_high = Function(ue_space, name="ue_high")
+    ue_bc_high.interpolate(cs * bohm_expr)
+    outfile = VTKFile(os.path.join(cfg["root_dir"], "bcs.pvd"))
+    outfile.write(ue_bc_low, ue_bc_high)
+
     return [*ui_bcs, *ue_bcs]
 
 
