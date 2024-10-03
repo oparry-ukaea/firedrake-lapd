@@ -48,6 +48,14 @@ def setup_nl_solver(eqn, U1, Jp, bcs, cfg):
         "fieldsplit_1_pc_type": "lu",
         "fieldsplit_1_pc_factor_mat_solver_type": "mumps",
     }
+    if cfg["debug_ksp"] or cfg["debug_snes"]:
+        nl_params["ksp_converged_reason"] = None
+        nl_params["ksp_monitor_true_residual"] = None
+    if cfg["debug_ksp"]:
+        nl_params["ksp_view"] = None
+    if cfg["debug_snes"]:
+        nl_params["snes_converged_reason"] = None
+        nl_params["snes_monitor"] = None
     return NonlinearVariationalSolver(nl_prob, solver_parameters=nl_params)
 
 

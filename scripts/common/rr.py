@@ -32,8 +32,13 @@ def nl_solve_setup(F, t, dt, state, cfg, bcs=None, **solver_param_overrides):
         "mat_type": "aij",
         "pc_factor_mat_solver_type": "mumps",
     }
-    if cfg["debug"]:
-        solver_params["ksp_monitor"] = None
+    if cfg["debug_ksp"] or cfg["debug_snes"]:
+        solver_params["ksp_converged_reason"] = None
+        solver_params["ksp_monitor_true_residual"] = None
+    if cfg["debug_ksp"]:
+        solver_params["ksp_view"] = None
+    if cfg["debug_snes"]:
+        solver_params["snes_converged_reason"] = None
         solver_params["snes_monitor"] = None
     solver_params.update(solver_param_overrides)
     return TimeStepper(
@@ -158,7 +163,8 @@ def _process_params(cfg):
     Set some default parameter values and add derived parameters
     """
     set_default_param(cfg, "output_base", "rogers-ricci")
-    set_default_param(cfg, "debug", False)
+    set_default_param(cfg, "debug_ksp", False)
+    set_default_param(cfg, "debug_snes", False)
 
     time_cfg = cfg["time"]
     # Time-related defaults
