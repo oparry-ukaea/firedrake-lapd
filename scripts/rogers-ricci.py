@@ -325,6 +325,10 @@ def rogers_ricci():
     bcs.append(gen_phi_bcs(combined_space.sub(subspace_indices["phi"]), cfg))
 
     nl_solver = setup_nl_solver(F, state1, Jp, bcs, cfg)
+
+    # Write ICs
+    outfile.write(*output_funcs)
+
     twall_last_info = time.time()
     while float(t) < float(t_end):
         if (float(t) + float(dt)) > t_end:
