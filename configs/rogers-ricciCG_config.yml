@@ -25,5 +25,5 @@ physical:
 time:
   num_steps: 20000
   info_freq: 1
-  output_freq: 20
+  output_freq: 1
   t_end: 5000.0e-6
