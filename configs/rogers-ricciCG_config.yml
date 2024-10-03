@@ -2,7 +2,7 @@ mesh:
   type: cuboid
   nx: 32
   ny: 32
-  nz: 16
+  nz: 8
 model:
   coulomb_fac_enabled: False
   elec_ion_mass_ratio: 400
