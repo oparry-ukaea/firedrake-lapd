@@ -57,6 +57,8 @@ Derived values
 | $S_{0n}$    | 0.03 $n_0 c_{s0}/R$      | 4.8e22 m<sup>-3</sup>s<sup>-1</sup> |                                                   |
 | $S_{0T}$    | 0.03 $T_{e0} c_{s0} / R$ | 4318.4 Ks<sup>-1</sup>              |                                                   |
 | $\sigma$    | $1.5 R/L_z$              | 1/24                                |                                                   |
+| $L_s$       | $0.5\rho_{s0}$           | 6e-3 m                              |                                                   |
+| $r_s$       | $20\rho_{s0}$            | 0.24 m                              | Approx radius of the LAPD plasma chamber          |
 
 ### Other implementation details
 
