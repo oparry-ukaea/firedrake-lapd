@@ -125,14 +125,14 @@ Note that, since the density only features in equation 4, it is effectively deco
 
 <figure>
   <img src="media/rr2D_64x64_CG.gif" width="600">
-  <figcaption>Temperature (normalised units) in the CG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
+  <figcaption>Temperature (normalised units) in the CG implementation, run on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
 </figure>
 
 ### DG version
 
 <figure>
   <img src="media/rr2D_64x64_DG.gif" width="600">
-  <figcaption>Temperature (normalised units) in the DG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
+  <figcaption>Temperature (normalised units) in the DG implementation, run on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
 </figure>
 
 ## Weak Forms
