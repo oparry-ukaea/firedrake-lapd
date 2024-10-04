@@ -62,6 +62,18 @@ Derived values
 
 ### Other implementation details
 
+#### Initial conditions
+
+The default initial conditions are
+
+| Field    | Default ICs (uniform)                          |
+| -------- | ---------------------------------------------- |
+| n        | $2\times10^{14} m^{-3}$ ($10^{-4}$ normalised) |
+| T        | $6\times10^{-4}$ eV ($10^{-4}$ normalised)     |
+| $\omega$ | 0                                              |
+
+N.B. Setting `start_from_steady_state: True` in the `model` section of the config file will use conditions defined in the `rr_steady_state` function; see the [source code](https://github.com/ExCALIBUR-NEPTUNE/firedrake-lapd/blob/568a31372ecbcd63a7a202b53889e785d8e97ccb/scripts/common/rr.py#L224-L252) for details.
+
 #### Boundary conditions
 Homogeneous Dirichlet for the potential on all boundaries; all other BCs are homogeneous Neumann.
 
