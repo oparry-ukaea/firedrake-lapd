@@ -57,8 +57,22 @@ Derived values
 | $S_{0n}$    | 0.03 $n_0 c_{s0}/R$      | 4.8e22 m<sup>-3</sup>s<sup>-1</sup> |                                                   |
 | $S_{0T}$    | 0.03 $T_{e0} c_{s0} / R$ | 4318.4 Ks<sup>-1</sup>              |                                                   |
 | $\sigma$    | $1.5 R/L_z$              | 1/24                                |                                                   |
+| $L_s$       | $0.5\rho_{s0}$           | 6e-3 m                              |                                                   |
+| $r_s$       | $20\rho_{s0}$            | 0.24 m                              | Approx radius of the LAPD plasma chamber          |
 
 ### Other implementation details
+
+#### Initial conditions
+
+The default initial conditions are
+
+| Field    | Default ICs (uniform)                          |
+| -------- | ---------------------------------------------- |
+| n        | $2\times10^{14} m^{-3}$ ($10^{-4}$ normalised) |
+| T        | $6\times10^{-4}$ eV ($10^{-4}$ normalised)     |
+| $\omega$ | 0                                              |
+
+N.B. Setting `start_from_steady_state: True` in the `model` section of the config file will use conditions defined in the `rr_steady_state` function; see the [source code](https://github.com/ExCALIBUR-NEPTUNE/firedrake-lapd/blob/568a31372ecbcd63a7a202b53889e785d8e97ccb/scripts/common/rr.py#L224-L252) for details.
 
 #### Boundary conditions
 Homogeneous Dirichlet for the potential on all boundaries; all other BCs are homogeneous Neumann.
@@ -123,14 +137,14 @@ Note that, since the density only features in equation 4, it is effectively deco
 
 <figure>
   <img src="media/rr2D_64x64_CG.gif" width="600">
-  <figcaption>Temperature (normalised units) in the CG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
+  <figcaption>Temperature (normalised units) in the CG implementation, run on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
 </figure>
 
 ### DG version
 
 <figure>
   <img src="media/rr2D_64x64_DG.gif" width="600">
-  <figcaption>Temperature (normalised units) in the DG implementation, run on a 64x64 quad mesh for 5 ms.</figcaption>
+  <figcaption>Temperature (normalised units) in the DG implementation, run on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
 </figure>
 
 ## Weak Forms
