@@ -63,7 +63,14 @@ def lhs_term(start, end, test):
     return inner(end - start, test) * dx
 
 
-def gen_bohm_bcs(ui_space, ue_space, phi, T, cfg):
+def tfac(t, cfg, ft=0.75, k=0.07):
+    tmax = cfg["time"]["t_end"] * ft
+    ts = (t - tmax / 2) / tmax
+    result = 1 / (1 + exp(-ts / k))
+    return result
+
+
+def gen_bohm_bcs(ui_space, ue_space, time, phi, T, cfg):
     """Set up Bohm BCs for ui,ue"""
     cs = cfg["normalised"]["c_s0"]
     T_eps = cfg["numerics"]["T_eps"]
@@ -84,7 +91,10 @@ def gen_bohm_bcs(ui_space, ue_space, phi, T, cfg):
     coulomb_log = cfg["physical"]["Lambda"]
     if cfg["model"]["coulomb_fac_enabled"]:
         # bohm_expr = exp(coulomb_log - phi / sqrt(T * T + T_eps * T_eps))
-        bohm_expr = 1 + coulomb_log - phi / sqrt(T * T + T_eps * T_eps)
+        # bohm_expr = 1 + tfac(time, cfg) * (
+        #     coulomb_log - phi / sqrt(T * T + T_eps * T_eps)
+        # )
+        bohm_expr = 1 + 3 * tfac(time, cfg)
     else:
         bohm_expr = 1
     ue_bcs = [
@@ -318,6 +328,7 @@ def rogers_ricci():
     bcs = gen_bohm_bcs(
         combined_space.sub(subspace_indices["ui"]),
         combined_space.sub(subspace_indices["ue"]),
+        t,
         phih,
         Th,
         cfg,
