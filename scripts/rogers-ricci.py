@@ -130,6 +130,8 @@ def gen_phi_bcs(phi, cfg):
 
 def rogers_ricci():
 
+    start = time.time()
+
     # Read config file (expected next to this script)
     cfg = read_rr_config("rogers-ricci_config.yml")
 
