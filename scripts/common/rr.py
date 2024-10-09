@@ -206,6 +206,7 @@ def _process_params(cfg):
     set_default_param(model_cfg, "Ls_boost", 1.0)
     set_default_param(model_cfg, "elec_ion_mass_ratio", 400.0)
     set_default_param(model_cfg, "exp_ics", False)
+    set_default_param(model_cfg, "sq_ics", False)
     set_default_param(model_cfg, "n_init", 1e18)
     set_default_param(model_cfg, "start_from_steady_state", True)
     set_default_param(model_cfg, "T_init", 6.0)

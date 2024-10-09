@@ -70,6 +70,11 @@ def tfac(t, cfg, ft=0.75, k=0.07):
     return result
 
 
+def phi_over_T(phi, T, T_eps):
+    return sqrt((phi * phi) / (T * T + T_eps * T_eps))
+    # return (phi + 3 * T_eps) / (T + T_eps)
+
+
 def gen_bohm_bcs(ui_space, ue_space, time, phi, T, cfg):
     """Set up Bohm BCs for ui,ue"""
     cs = cfg["normalised"]["c_s0"]
@@ -286,32 +291,66 @@ def rogers_ricci():
     # Initial conditions
     mesh_cfg = cfg["mesh"]
 
-    # Ion and electron velocities are initially linear in z
-    state0.sub(subspace_indices["ui"]).interpolate(
-        2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
-    )
-    state0.sub(subspace_indices["ue"]).interpolate(
-        2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
-    )
+    cs_normz = 2 * norm_cfg["c_s0"] * z / mesh_cfg["Lz"]
+    coulomb_log = cfg["physical"]["Lambda"]
+    # if cfg["model"]["coulomb_fac_enabled"]:
+    #     coulomb_log = cfg["physical"]["Lambda"]
+    #     # coulomb_fac = exp(coulomb_log - phi / sqrt(T * T + T_eps * T_eps))
+    #     state0.sub(subspace_indices["ui"]).interpolate(exp(coulomb_log) * cs_normz)
+    #     state0.sub(subspace_indices["ue"]).interpolate(exp(coulomb_log) * cs_normz)
+    #     if not is_isothermal:
+    #         state0.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
+    #     state0.sub(subspace_indices["w"]).interpolate(0)
+    #     state0.sub(subspace_indices["phi"]).interpolate(0)
+    # else:
+    #     state0.sub(subspace_indices["ui"]).interpolate(cs_normz)
+    #     state0.sub(subspace_indices["ue"]).interpolate(cs_normz)
+    #     if not is_isothermal:
+    #         state0.sub(subspace_indices["T"]).interpolate(norm_cfg["T_init"])
+    #     # Vorticity = 0
+    #     state0.sub(subspace_indices["w"]).interpolate(0)
 
     if cfg["model"]["exp_ics"]:
         r = sqrt(x * x + y * y)
-        scale = 80 * cfg["normalised"]["Ls"]
-        T_init = 1e-6 * exp(-(r * r) / scale)
+        T_eps = cfg["numerics"]["T_eps"]
+        scale = 2000 * cfg["normalised"]["Ls"]
+        exp_prof = exp(-(r * r) / scale)
+        T_init = norm_cfg["T_init"] * exp_prof
         phi_init = 3 * T_init
-        n_init = T_init
-        w_init = 3 * 4 * T_init * (scale - r * r) / scale / scale / 20
+        n_init = norm_cfg["n_init"] * exp_prof
+        w_init = 3 * 4 * T_init * (scale - r * r) / scale / scale
+        ui_init = cs_normz
+        ue_init = (1 + coulomb_log - phi_over_T(phi_init, T_init, T_eps)) * cs_normz
+        # ue_init = exp(coulomb_log - phi_init / sqrt(T_init * T_init)) * cs_normz
+    elif cfg["model"]["sq_ics"]:
+        T_eps = cfg["numerics"]["T_eps"]
+        Lx = cfg["mesh"]["Lx"]
+        core_prof = sqrt(Lx**2 - x**2) * sqrt(Lx**2 - y**2) / Lx / Lx
+        T_init = norm_cfg["T_init"] * core_prof
+        phi_init = 3 * T_init
+        n_init = norm_cfg["n_init"] * core_prof
+        w_init = (
+            -norm_cfg["T_init"]
+            * (2 * Lx**4 + x**4 + y**4 - 2 * Lx**2 * (x**2 + y**2))
+            / ((Lx**2 - x**2) ** 1.5 * (Lx**2 - y**2) ** 1.5)
+        )
+        ui_init = cs_normz
+        ue_init = (1 + coulomb_log - phi_over_T(phi_init, T_init, T_eps)) * cs_normz
     else:
         n_init = norm_cfg["n_init"]
         T_init = norm_cfg["T_init"]
-        phi_init = 3 * T_init
+        phi_init = 0  # 3 * T_init
         w_init = 0
+        ui_init = cs_normz
+        ue_init = cs_normz
 
     state0.sub(subspace_indices["n"]).interpolate(n_init)
     if not is_isothermal:
         state0.sub(subspace_indices["T"]).interpolate(T_init)
     state0.sub(subspace_indices["w"]).interpolate(w_init)
     state0.sub(subspace_indices["phi"]).interpolate(phi_init)
+    state0.sub(subspace_indices["ui"]).interpolate(ui_init)
+    state0.sub(subspace_indices["ue"]).interpolate(ue_init)
 
     # Set up output
     outfile = VTKFile(os.path.join(cfg["root_dir"], cfg["output_base"] + ".pvd"))
