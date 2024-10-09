@@ -63,7 +63,7 @@ def lhs_term(start, end, test):
     return inner(end - start, test) * dx
 
 
-def tfac(t, cfg, ft=0.75, k=0.07):
+def tfac(t, cfg, ft=0.5, k=0.04):
     tmax = cfg["time"]["t_end"] * ft
     ts = (t - tmax / 2) / tmax
     result = 1 / (1 + exp(-ts / k))
@@ -96,10 +96,10 @@ def gen_bohm_bcs(ui_space, ue_space, time, phi, T, cfg):
     coulomb_log = cfg["physical"]["Lambda"]
     if cfg["model"]["coulomb_fac_enabled"]:
         # bohm_expr = exp(coulomb_log - phi / sqrt(T * T + T_eps * T_eps))
-        # bohm_expr = 1 + tfac(time, cfg) * (
-        #     coulomb_log - phi / sqrt(T * T + T_eps * T_eps)
-        # )
-        bohm_expr = 1 + 3 * tfac(time, cfg)
+        # bohm_expr = 1 + coulomb_log - phi_over_T(phi, T, T_eps)
+        tf = tfac(time, cfg)
+        bohm_expr = 1 + tf * (coulomb_log - phi_over_T(phi, T, T_eps))
+        # bohm_expr = 1 + 3 * tfac(time, cfg)
     else:
         bohm_expr = 1
     ue_bcs = [
