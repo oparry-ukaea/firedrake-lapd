@@ -22,6 +22,7 @@ from firedrake import (
     split,
     sqrt,
     TestFunctions,
+    VectorSpaceBasis,
     VTKFile,
 )
 import os.path
@@ -33,7 +34,8 @@ def setup_nl_solver(eqn, U1, Jp, bcs, cfg):
     nfields = 5 if cfg["model"]["is_isothermal"] else 6
     potential_idx_str = f"{nfields-1}"
     other_indices_str = ",".join(str(idx) for idx in range(nfields - 1))
-    nl_prob = NonlinearVariationalProblem(eqn, U1, Jp=Jp, bcs=bcs)
+    nullspace = VectorSpaceBasis(constant=True, comm=COMM_WORLD)
+    nl_prob = NonlinearVariationalProblem(eqn, U1, Jp=Jp, bcs=bcs, nullspace=nullspace)
     nl_params = {
         "pc_type": "fieldsplit",
         "pc_fieldsplit_type": "additive",
@@ -374,7 +376,7 @@ def rogers_ricci():
         Th,
         cfg,
     )
-    bcs.append(gen_phi_bcs(combined_space.sub(subspace_indices["phi"]), cfg))
+    # bcs.append(gen_phi_bcs(combined_space.sub(subspace_indices["phi"]), cfg))
 
     nl_solver = setup_nl_solver(F, state1, Jp, bcs, cfg)
 
