@@ -41,6 +41,8 @@ else
     exit 2
 fi
 
+msh_name="${script_name%.py}.msh"
+
 # Make run directory
 run_dir="${repo_root}/runs/${run_name}"
 rm -rf "${run_dir}"
@@ -50,6 +52,7 @@ mkdir -p "${run_dir}"
 cp_from_subdir "scripts" "$script_name"
 cp_from_subdir "scripts" "common"
 cp_from_subdir "configs" "$cfg_names"
+cp_from_subdir "meshes" "$msh_name"
 
 # If only one config file was copied, remove the suffix
 if [ -n "$cfg_renamed" ] && [ -e "${run_dir}/${cfg_names}" ]; then 
