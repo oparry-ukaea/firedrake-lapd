@@ -187,6 +187,8 @@ def _process_params(cfg):
         set_default_param(mesh_cfg, "nx", 1024)
         set_default_param(mesh_cfg, "ny", 1024)
         set_default_param(mesh_cfg, "use_hex", True)
+    elif mesh_type == "custom_cuboid":
+        pass
     elif mesh_type == "circle":
         mesh_cfg["nx"] = 128
     elif mesh_type == "cylinder":
@@ -279,7 +281,7 @@ def _process_params(cfg):
     # Derived mesh params
     mesh_cfg["Lz"] = phys_cfg["Lz"]
     mesh_cfg["zmin"] = -phys_cfg["Lz"] / 2
-    if mesh_cfg["type"] in ["circle", "cuboid", "rectangle"]:
+    if mesh_cfg["type"] in ["circle", "cuboid", "custom_cuboid", "rectangle"]:
         mesh_cfg["dx"] = phys_cfg["L"] / mesh_cfg["nx"]
         mesh_cfg["Lx"] = phys_cfg["L"]
         mesh_cfg["Ly"] = phys_cfg["L"]

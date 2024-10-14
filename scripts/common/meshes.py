@@ -36,6 +36,10 @@ def set_up_mesh(opts, name="no_name_set"):
                 lower=(mesh_opts["xmin"], mesh_opts["ymin"], mesh_opts["zmin"]),
                 hexahedral=mesh_opts["use_hex"],
             )
+        elif mesh_type == "custom_cuboid":
+            # Load mesh
+            mesh = Mesh(os.path.join(opts["root_dir"], "rogers-ricci.msh"))
+            mesh_opts["type"] = "cuboid"
         elif mesh_type == "cylinder":
             ref_level = mesh_opts["ref_level"]
             # Store num cells in transverse slice

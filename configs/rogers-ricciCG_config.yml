@@ -1,5 +1,5 @@
 mesh:
-  type: cuboid
+  type: custom_cuboid
   nx: 32
   ny: 32
   nz: 8
