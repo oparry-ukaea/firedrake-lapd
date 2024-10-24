@@ -96,11 +96,7 @@ def phi_solve_setup(phi_space, phi, w, cfg, bcs=None):
 
     # D0 on all boundaries
     if bcs is None:
-        if cfg["mesh"]["type"] in ["circle", "cuboid", "rectangle"]:
-            bdy_lbl_all = "on_boundary"
-        elif cfg["mesh"]["type"] == "cylinder":
-            bdy_lbl_all = ("on_boundary", "top", "bottom")
-        bcs = DirichletBC(phi_space, 0, bdy_lbl_all)
+        bcs = DirichletBC(phi_space, 0, cfg["mesh"]["all_bdy_lbl"])
 
     phi_problem = LinearVariationalProblem(Lphi, Rphi, phi, bcs=bcs)
     solver_params = {
@@ -113,11 +109,11 @@ def phi_solve_setup(phi_space, phi, w, cfg, bcs=None):
 
 def phi_bcs2D(phi_space, T, cfg):
     # Try and get boundary label from mesh cfg; default to best guess if it's not set
-    transverse_bdy_lbl = cfg["mesh"].get("transverse_bdy_lbl", "on_boundary")
+    transverse_bdy_lbls = cfg["mesh"]["transverse_bdy_lbls"]
 
     # Set fixed boundary value; defaults to zero
     fixed_bdy_val = cfg["numerics"].get("phi_boundary_value", 0.0)
-    return DirichletBC(phi_space, fixed_bdy_val, transverse_bdy_lbl)
+    return DirichletBC(phi_space, fixed_bdy_val, transverse_bdy_lbls)
 
 
 def poisson_bracket(f, phi):
