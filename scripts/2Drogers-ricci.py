@@ -80,7 +80,7 @@ def nl_solve_setup(F, t, dt, state, cfg):
     return TimeStepper(F, butcher_tableau, t, dt, state, solver_parameters=nl_solver_params)  # fmt: skip
 
 
-def phi_solve_setup(phi_space, phi, w, cfg):
+def phi_solve_setup(phi_space, phi, w, cfg, bcs=None):
     phi_test = TestFunction(phi_space)
     phi_tri = TrialFunction(phi_space)
 
@@ -95,19 +95,29 @@ def phi_solve_setup(phi_space, phi, w, cfg):
     Rphi = Constant(rhs_fac) * w * phi_test * dx
 
     # D0 on all boundaries
-    if cfg["mesh"]["type"] in ["circle", "cuboid", "rectangle"]:
-        bdy_lbl_all = "on_boundary"
-    elif cfg["mesh"]["type"] == "cylinder":
-        bdy_lbl_all = ("on_boundary", "top", "bottom")
-    phi_BCs = DirichletBC(phi_space, 0, bdy_lbl_all)
+    if bcs is None:
+        if cfg["mesh"]["type"] in ["circle", "cuboid", "rectangle"]:
+            bdy_lbl_all = "on_boundary"
+        elif cfg["mesh"]["type"] == "cylinder":
+            bdy_lbl_all = ("on_boundary", "top", "bottom")
+        bcs = DirichletBC(phi_space, 0, bdy_lbl_all)
 
-    phi_problem = LinearVariationalProblem(Lphi, Rphi, phi, bcs=phi_BCs)
+    phi_problem = LinearVariationalProblem(Lphi, Rphi, phi, bcs=bcs)
     solver_params = {
         "ksp_type": "preonly",
         "pc_type": "lu",
         "pc_factor_mat_solver_type": "mumps",
     }
     return LinearVariationalSolver(phi_problem, solver_parameters=solver_params)
+
+
+def phi_bcs2D(phi_space, T, cfg):
+    # Try and get boundary label from mesh cfg; default to best guess if it's not set
+    transverse_bdy_lbl = cfg["mesh"].get("transverse_bdy_lbl", "on_boundary")
+
+    # Set fixed boundary value; defaults to zero
+    fixed_bdy_val = cfg["numerics"].get("phi_boundary_value", 0.0)
+    return DirichletBC(phi_space, fixed_bdy_val, transverse_bdy_lbl)
 
 
 def poisson_bracket(f, phi):
@@ -151,7 +161,9 @@ def rogers_ricci2D():
     n_src = rr_src_term(n_space, x, y, "n", cfg)
     T_src = rr_src_term(T_space, x, y, "T", cfg)
 
-    phi_solver = phi_solve_setup(phi_space, phi, w, cfg)
+    phi_solver = phi_solve_setup(
+        phi_space, phi, w, cfg, bcs=phi_bcs2D(phi_space, T, cfg)
+    )
 
     # Assemble variational problem
     n_test, w_test, T_test = TestFunctions(combined_space)
