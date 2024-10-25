@@ -75,8 +75,17 @@ The default initial conditions are
 N.B. Setting `start_from_steady_state: True` in the `model` section of the config file will use conditions defined in the `rr_steady_state` function; see the [source code](https://github.com/ExCALIBUR-NEPTUNE/firedrake-lapd/blob/568a31372ecbcd63a7a202b53889e785d8e97ccb/scripts/common/rr.py#L224-L252) for details.
 
 #### Boundary conditions
-Homogeneous Dirichlet for the potential on all boundaries; all other BCs are homogeneous Neumann.
 
+Dirichlet for the potential on all boundaries; (homogeneous) Neumann for all other fields.
+
+| Field    | BCs              |
+| -------- | ---------------- |
+| n        | Neumann          |
+| T        | Neumann          |
+| $\omega$ | Neumann          |
+| $\phi$   | $\phi_{\rm bdy}$ |
+
+$\phi_{\rm bdy}$ is set to 0.03 by default. This value was chosen to keep the value of $\phi$ relatively flat outside the central source region and avoid boundary layers forming in $\omega$ and $\phi$. 
 
 #### Domain and mesh
 
@@ -136,15 +145,17 @@ Note that, since the density only features in equation 4, it is effectively deco
 ### CG version
 
 <figure>
-  <img src="media/rr2D_64x64_CG.gif" width="600">
-  <figcaption>Temperature (normalised units) in the CG implementation, run on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
+  <img src="media/rr2D_64x64_CG_temperature.gif" align="left" width="50%" >
+  <img src="media/rr2D_64x64_CG_vorticity.gif" align="left" width="50%" >
+  <figcaption>Temperature (left) and vorticity (right) in normalised units, run with the CG implementation on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
 </figure>
 
 ### DG version
 
 <figure>
-  <img src="media/rr2D_64x64_DG.gif" width="600">
-  <figcaption>Temperature (normalised units) in the DG implementation, run on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
+  <img src="media/rr2D_64x64_DG_temperature.gif" align="left" width="50%" >
+  <img src="media/rr2D_64x64_DG_vorticity.gif" align="left" width="50%" >
+  <figcaption>Temperature (left) and vorticity (right) in normalised units, run with the DG implementation on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
 </figure>
 
 ## Weak Forms
