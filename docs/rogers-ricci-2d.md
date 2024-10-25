@@ -145,15 +145,17 @@ Note that, since the density only features in equation 4, it is effectively deco
 ### CG version
 
 <figure>
-  <img src="media/rr2D_64x64_CG.gif" width="600">
-  <figcaption>Temperature (normalised units) in the CG implementation, run on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
+  <img src="media/rr2D_64x64_CG_temperature.gif" align="left" width="50%" >
+  <img src="media/rr2D_64x64_CG_vorticity.gif" align="left" width="50%" >
+  <figcaption>Temperature (left) and vorticity (right) in normalised units, run with the CG implementation on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
 </figure>
 
 ### DG version
 
 <figure>
-  <img src="media/rr2D_64x64_DG.gif" width="600">
-  <figcaption>Temperature (normalised units) in the DG implementation, run on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
+  <img src="media/rr2D_64x64_DG_temperature.gif" align="left" width="50%" >
+  <img src="media/rr2D_64x64_DG_vorticity.gif" align="left" width="50%" >
+  <figcaption>Temperature (left) and vorticity (right) in normalised units, run with the DG implementation on a 64x64 quad mesh for 5 ms (120 normalised time units).</figcaption>
 </figure>
 
 ## Weak Forms
